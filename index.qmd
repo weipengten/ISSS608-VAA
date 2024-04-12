@@ -11,7 +11,5 @@ editor: visual
 
 #### Let's deep dive into what he has learnt in ISSS624 Geospatial Analytics Applications!
 
-test
 
-test
 :::
