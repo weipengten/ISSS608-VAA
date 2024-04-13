@@ -83,15 +83,3 @@ The transferable skills from ggplot2 are not the idiosyncrasies of plotting synt
 :::
 
 [Hadley Wickham](http://varianceexplained.org/r/teach_ggplot2_to_beginners/#comment-1745406157)
-
-
-
-
-
-
-
-
-
-
-
-
