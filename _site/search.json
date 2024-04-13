@@ -32,7 +32,7 @@
     "href": "Hands-on Ex/Hands-on_Ex1/Hands-on_Ex01.html#introducing-ggplot",
     "title": "Hands-on Exercise 1",
     "section": "Introducing ggplot",
-    "text": "Introducing ggplot\n\n\n is an R package for declaratively creating data-driven graphics based on The Grammar of Graphics\n\n\n\n\n\n\nIt is part of the tidyverse family specially designed for visual exploration and communication.\n\n\n\n\n\nFor more detail, visit ggplot2 link.\n\n\nR Graphics VS ggplot\n\nR Graphicsggplot2\n\n\n\nhist(exam_data$MATHS)\n\n\n\n\n\n\n\nggplot(data=exam_data, aes(x = MATHS)) +\n  geom_histogram(bins=10, \n                 boundary = 100,\n                 color=\"black\", \n                 fill=\"grey\") +\n  ggtitle(\"Distribution of Maths scores\")"
+    "text": "Introducing ggplot\n\n\n is an R package for declaratively creating data-driven graphics based on The Grammar of Graphics\n\n\n\n\n\n\nIt is part of the tidyverse family specially designed for visual exploration and communication.\n\n\n\n\n\nFor more detail, visit ggplot2 link.\n\n\nR Graphics VS ggplot\n\nR Graphicsggplot2\n\n\n\nhist(exam_data$MATHS)\n\n\n\n\n\n\n\nggplot(data=exam_data, aes(x = MATHS)) +\n  geom_histogram(bins=10, \n                 boundary = 100,\n                 color=\"black\", \n                 fill=\"grey\") +\n  ggtitle(\"Distribution of Maths scores\")\n\n\n\n\n\n\n\n\n\nThen, why ggplot2\n\n\n\n\n\n\nNote\n\n\n\nThe transferable skills from ggplot2 are not the idiosyncrasies of plotting syntax, but a powerful way of thinking about visualisation, as a way of mapping between variables and the visual properties of geometric objects that you can perceive.\n\n\nHadley Wickham"
   },
   {
     "objectID": "Hands-on Ex/Hands-on_Ex1/Hands-on_Ex01.html#ggplot2",

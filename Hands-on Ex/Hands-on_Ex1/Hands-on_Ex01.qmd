@@ -53,13 +53,9 @@ exam_data <- read_csv("data/Exam_data.csv")
 
 -   For more detail, visit [ggplot2 link](https://ggplot2.tidyverse.org/index.html).
 
-
-
-
 ### R Graphics VS ggplot
 
 ::: panel-tabset
-
 #### R Graphics
 
 ```{r}
@@ -79,3 +75,23 @@ ggplot(data=exam_data, aes(x = MATHS)) +
   ggtitle("Distribution of Maths scores")
 ```
 :::
+
+### Then, why ggplot2
+
+::: callout-note
+The transferable skills from ggplot2 are not the idiosyncrasies of plotting syntax, but a powerful way of thinking about visualisation, as a way of mapping between variables and the visual properties of geometric objects that you can perceive.
+:::
+
+[Hadley Wickham](http://varianceexplained.org/r/teach_ggplot2_to_beginners/#comment-1745406157)
+
+
+
+
+
+
+
+
+
+
+
+
