@@ -285,5 +285,33 @@
     "title": "Hands-on Exercise 1",
     "section": "1.11. Essential Grammatical Elements in ggplot2: Themes",
     "text": "1.11. Essential Grammatical Elements in ggplot2: Themes\nThemes control elements of the graph not related to the data. For example: ::: {style=“font-size: 0.8em”} - background colour - size of fonts - gridlines - colour of labels ::: Built-in themes include: - theme_gray() (default) - theme_bw() - theme_classic() A list of theme can be found at this link. Each theme element can be conceived of as either a line (e.g. x-axis), a rectangle (e.g. graph background), or text (e.g. axis title).\n\n1.11.1 Working with theme\nThe code chunk below plot a horizontal bar chart using theme_gray().\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_gray()\n\n\n\n\n\n\nA horizontal bar chart plotted using theme_classic().\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_classic()\n\n\n\n\nA horizontal bar chart plotted using theme_minimal().\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_minimal()"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
+    "title": "In-class Exercise 01",
+    "section": "",
+    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#loading-packages",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#loading-packages",
+    "title": "In-class Exercise 01",
+    "section": "",
+    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#importing-data",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#importing-data",
+    "title": "In-class Exercise 01",
+    "section": "Importing Data",
+    "text": "Importing Data\n\nrealis &lt;-read_csv(\"data/realis2019.csv\")"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#r-graphics-vs-ggplot",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#r-graphics-vs-ggplot",
+    "title": "In-class Exercise 01",
+    "section": "R Graphics vs GGplot",
+    "text": "R Graphics vs GGplot\n\nggplot(data=realis, \n       aes(x = `Unit Price ($ psm)`)) +\n    geom_histogram()"
   }
 ]
