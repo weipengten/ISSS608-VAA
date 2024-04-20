@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 01"
+title: "In-class Exercise 02"
 author: "Ten Wei Peng"
 date: "April 20, 2024"
 date-modified: "last-modified"
@@ -17,19 +17,120 @@ In the code chunk, p_load() and [**pacman**](https://cran.r-project.org/web/pack
 :::
 
 ```{r}
-pacman::p_load(tidyverse)
+pacman::p_load(tidyverse, ggdist,ggthemes, colorspace, ggridges)
 ```
 
 ## Importing Data
 
 ```{r}
-realis <-read_csv("data/realis2019.csv")
+exam_df <-read_csv("data/Exam_data.csv")
 ```
 
-## R Graphics vs GGplot
+# Visualisation Distribution
+
+## Histogram
+::: panel-tabset
+
+### The Task
+Using the step you learned , build a histogram
+
+
+### The Code
 
 ```{r}
-ggplot(data=realis, 
-       aes(x = `Unit Price ($ psm)`)) +
-    geom_histogram()
+ggplot(data=exam_df, 
+             aes(x = ENGLISH)) +
+  geom_histogram(bins=20, 
+                 boundary = 100,
+                 color="grey25", 
+                 fill="grey90") +
+  ggtitle("Distribution of English scores") +
+  theme_economist()
 ```
+
+:::
+
+
+
+## Distribution
+::: panel-tabset
+
+### The Task
+Using the step you learned , build a density plot
+
+
+### The Code
+
+```{r}
+ggplot(data=exam_df, 
+             aes(x = ENGLISH)) +
+  geom_density(color ="#1696d2",
+               adjust =0.65,
+               alpha =0.6)
+```
+
+:::
+
+
+
+
+
+
+## The alternative design
+::: panel-tabset
+
+### The Task
+Using the step you learned , build a density plot
+
+
+### The Code
+
+```{r}
+median_eng <- median(exam_df$ENGLISH)
+mean_eng <- mean(exam_df$ENGLISH)
+std_eng <- sd(exam_df$ENGLISH)
+
+ggplot(data = exam_df, aes(x = ENGLISH)) +
+  geom_density(color = "#1696d2", adjust = 0.65, alpha = 0.6) +
+  stat_function(
+    fun = dnorm,
+    args = list(mean = mean_eng, sd = std_eng),
+    col = "grey30",
+    size = 0.8
+  ) +
+  geom_vline(
+    aes(xintercept = mean_eng),
+    colour = "#4d5887",
+    linewidth = 0.6,
+    linetype = "dashed"
+  ) +
+  annotate(
+    geom = "text",
+    x = mean_eng - 8,
+    y = 0.04,
+    label = paste0("Mean ENGLISH: ", round(mean_eng, 2)),
+    color = "#4d5887"
+  ) +
+  geom_vline(
+    aes(xintercept = median_eng),
+    colour = "#00AFBB",
+    linewidth = 0.6,
+    linetype = "dashed"
+  ) +
+  annotate(
+    geom = "text",
+    x = mean_eng - 8,
+    y = 0.04,
+    label = paste0("Median ENGLISH: ", round(median_eng, 2)),
+    color = "#00AFBB"
+  )
+```
+
+:::
+
+
+
+
+
+
+

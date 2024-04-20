@@ -254,23 +254,23 @@
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
-    "title": "In-class Exercise 01",
+    "title": "In-class Exercise 02",
     "section": "",
-    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse)"
+    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse, ggdist,ggthemes, colorspace, ggridges)"
   },
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#loading-packages",
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#loading-packages",
-    "title": "In-class Exercise 01",
+    "title": "In-class Exercise 02",
     "section": "",
-    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse)"
+    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse, ggdist,ggthemes, colorspace, ggridges)"
   },
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-data",
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-data",
-    "title": "In-class Exercise 01",
+    "title": "In-class Exercise 02",
     "section": "Importing Data",
-    "text": "Importing Data\n\nrealis &lt;-read_csv(\"data/realis2019.csv\")"
+    "text": "Importing Data\n\nexam_df &lt;-read_csv(\"data/Exam_data.csv\")"
   },
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#r-graphics-vs-ggplot",
@@ -278,5 +278,26 @@
     "title": "In-class Exercise 01",
     "section": "R Graphics vs GGplot",
     "text": "R Graphics vs GGplot\n\nggplot(data=realis, \n       aes(x = `Unit Price ($ psm)`)) +\n    geom_histogram()"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#histogram",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#histogram",
+    "title": "In-class Exercise 02",
+    "section": "Histogram",
+    "text": "Histogram\n\nThe TaskThe Code\n\n\nUsing the step you learned , build a histogram\n\n\n\nggplot(data=exam_df, \n             aes(x = ENGLISH)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of English scores\") +\n  theme_economist()"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#distribution",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#distribution",
+    "title": "In-class Exercise 02",
+    "section": "Distribution",
+    "text": "Distribution\n\nThe TaskThe Code\n\n\nUsing the step you learned , build a density plot\n\n\n\nggplot(data=exam_df, \n             aes(x = ENGLISH)) +\n  geom_density(color =\"#1696d2\",\n               adjust =0.65,\n               alpha =0.6)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#the-alternative-design",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#the-alternative-design",
+    "title": "In-class Exercise 02",
+    "section": "The alternative design",
+    "text": "The alternative design\n\nThe TaskThe Code\n\n\nUsing the step you learned , build a density plot\n\n\n\nmedian_eng &lt;- median(exam_df$ENGLISH)\nmean_eng &lt;- mean(exam_df$ENGLISH)\nstd_eng &lt;- sd(exam_df$ENGLISH)\n\nggplot(data = exam_df, aes(x = ENGLISH)) +\n  geom_density(color = \"#1696d2\", adjust = 0.65, alpha = 0.6) +\n  stat_function(\n    fun = dnorm,\n    args = list(mean = mean_eng, sd = std_eng),\n    col = \"grey30\",\n    size = 0.8\n  ) +\n  geom_vline(\n    aes(xintercept = mean_eng),\n    colour = \"#4d5887\",\n    linewidth = 0.6,\n    linetype = \"dashed\"\n  ) +\n  annotate(\n    geom = \"text\",\n    x = mean_eng - 8,\n    y = 0.04,\n    label = paste0(\"Mean ENGLISH: \", round(mean_eng, 2)),\n    color = \"#4d5887\"\n  ) +\n  geom_vline(\n    aes(xintercept = median_eng),\n    colour = \"#00AFBB\",\n    linewidth = 0.6,\n    linetype = \"dashed\"\n  ) +\n  annotate(\n    geom = \"text\",\n    x = mean_eng - 8,\n    y = 0.04,\n    label = paste0(\"Median ENGLISH: \", round(median_eng, 2)),\n    color = \"#00AFBB\"\n  )"
   }
 ]
