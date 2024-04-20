@@ -1,0 +1,263 @@
+---
+title: "Take Home Exercise 1 - Geospatial Analytics for Public Good"
+author: "Ten Wei Peng"
+date: "April 13, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+## The Task
+Assuming the role of a graphical editor of a median company, you are requested to prepare minimum two and maximum three data visualisation to reveal the private residential market and sub-markets of Singapore for the 1st quarter of 2024.
+
+## The Data
+To accomplish the task, transaction data of REALIS will be used. A complete set of the private residential property transaction data from 1st January 2023 to 31st March 2024 have been downloaded via SMU e-library database service.
+
+
+## Install R Package
+
+```{r}
+pacman::p_load(tidyverse,forcats)
+```
+
+# 1. Importing Data
+
+We will import the data as a first step before proceeding with data cleaning, data wrangling and data ex
+
+
+```{r}
+# Get list of CSV files in the directory
+file_list <- list.files(path = "data", pattern = "*.csv", full.names = TRUE)
+
+# Read and bind all CSV files into one data frame
+combined_data <- file_list %>%
+  map_df(read_csv)
+```
+
+```{r}
+# View the first few rows of the combined data
+head(combined_data)
+```
+
+# 2. Data Wrangling (High-Level Overview)
+
+::: panel-tabset
+## 2.1. Data Preview
+
+### First look at our Data
+
+**Let's get an understanding of our column features and their datatypes and see if we need to make any changes with the use of `glimpse()`.**
+
+```{r}
+glimpse(combined_data)
+```
+::: callout-note
+**Some key observations of the data using `summary()`:**
+
+-   There seem to be 6 missing data for `Area (SQM)`
+
+-   `Transacted Price ($)` has a min of 440000 and does not have 0 values.
+
+-   `Sale Date`, is in inappropriate data format.
+
+-   `Nett Price($)` looks unuseable, we might need to drop it
+
+-   `Completion Date` has missing data in the form of '-', care needs to be taken if we are to use this column
+:::
+
+```{r}
+# summary statistics
+summary(combined_data)
+```
+
+## 2.2. Missing Data
+
+### Dealing with Missing Data
+**Let's get the rows that has the missing data!.**
+
+```{r}
+# Check for the rows with null values
+null_check <- combined_data %>% 
+                  filter(is.na(`Area (SQM)`))
+null_check
+```
+
+Given the data above, it is impossible for us to understand if there is a systemic reason for the cause of missing data, hence we shall proceed to drop these rows from analysis.The current data now is reduced to **26800** observations from the initial **26806**.
+```{r}
+# Filter out rows where `Area (SQM)` is not missing
+combined_data <- combined_data %>% 
+                  filter(!is.na(`Area (SQM)`))
+```
+
+We are not planning to utilise `Completion Date`, so we will not make any changes regarding that
+
+## 2.3. Data Type
+
+### Converting Data Types
+**From the Data Exploration earlier, we found `'Sale Date'` to be in `chr` format, we need to change it to `date` format to analyze the data properly.**
+
+```{r}
+combined_data <- combined_data %>%
+  mutate(`Sale Date` = as.Date(`Sale Date`, format = "%d %b %Y"))
+
+# View the structure of the modified data
+str(combined_data)
+
+# View the first few rows of the modified data
+head(combined_data)
+```
+
+
+
+## 2.4. Duplicates Check
+
+### Dealing with Duplicates
+
+**Let's check for duplicates!**
+
+Passed initial checks in code chunk below for whole duplicate rows,
+```{r}
+duplicate <- combined_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+duplicate
+```
+
+::: callout-note
+Proceed to checking for duplicates in the Address column, we seemed to have found 9 duplicated observations. However, they have different `"Sale Date"`. As this is expected, we will ignore the case of duplicate address found here and proceed ahead.
+:::
+
+```{r}
+duplicates <- combined_data[duplicated(combined_data$Address), ]
+filtered_data <- combined_data[combined_data$Address %in% duplicates$Address, ]
+```
+:::
+
+# 3. Data Exploration 
+
+::: panel-tabset
+## 3.1. Categorical Data
+
+### Dealing with Categorical Data
+
+**Let's get an understanding of the number of unique categories in our categorical data.**
+
+```{r}
+# Filter character columns
+char_columns <- Filter(is.character, combined_data)
+
+# Count unique categories for each character column
+unique_counts <- sapply(char_columns, function(col) length(unique(col)))
+
+# Display the unique counts
+print(unique_counts)
+
+```
+::: callout-note
+**Some key observations of the data using `summary()`:**
+
+-   Columns such as `Type of Sale` , `Type of Area`, `Property Type`, `Planning Region` , 'Purchaser Address Indicator' has few categories and require minimal transformations.
+
+-   Columns such as `Project Name` , `Address`, `Tenure`, `Completion Date`, `Postal District`, ` Postal Code`, `Planning Area`   has many categories and might require grouping to be utilised effectively.
+:::
+
+
+**Define a function to count and print unique categories for a given column.**
+
+```{r}
+count_unique_categories <- function(data, column_name) {
+  cat("**", column_name, "**\n", sep = "")
+  category_counts <- table(data[[column_name]])
+  sorted_counts <- sort(category_counts, decreasing = TRUE)
+  print(sorted_counts)
+}
+```
+**Call the function for each column**
+```{r}
+count_unique_categories(combined_data, 'Type of Sale')
+count_unique_categories(combined_data, 'Type of Area')
+count_unique_categories(combined_data, 'Property Type')
+count_unique_categories(combined_data, 'Purchaser Address Indicator')
+count_unique_categories(combined_data, 'Postal District')
+count_unique_categories(combined_data, 'Planning Region')
+count_unique_categories(combined_data, 'Planning Area')
+```
+::: callout-note
+**Some key observations of `Purchaser Address Indicator`**
+
+-   Note that some information regarding `Purchaser Address Indicator`is not provided at all and is labelled as `N.A` and this amounts to `2733` rows of data having such a phenomena. 
+
+-   Further preprocessing needs to be taken if this data is required to be utilised.
+:::
+
+## 3.2. Continuous Data
+
+### Dealing with Continuous Data
+
+**Let's get an understanding of the data range in our Continuous data.**
+
+```{r}
+# Filter character columns
+numeric_columns <- Filter(is.numeric, combined_data)
+
+# Calculate the range of values for each numeric column
+column_ranges <- sapply(numeric_columns, function(x) range(x, na.rm = TRUE))
+
+# Print the range for each column
+print(column_ranges)
+
+```
+
+```{r}
+summary(numeric_columns)
+```
+
+
+::: callout-note
+**Some key observations of the observed ranges**
+
+-   It is evident from the wide range of all the numeric column features that criteria for analysis needs to be precisely set to allow for an accurate analysis 
+:::
+
+::: 
+
+# 3. Data Exploration (using Data Viz) 
+
+
+
+```{r}
+# Define the new labels for each category
+new_labels <- c("Apartment", "Condo", "Executive Condo", "Terrace", "Semi-Detached", "Detached")
+
+combined_data = combined_data %>%
+  mutate(`Property Type` = recode(`Property Type`, 
+                        "Apartment" = "Apartment",
+                        "Condominium " = "Condo",
+                        "Executive Condominium" = "Executive Condos",
+                        "Terrace House" = "Terrace",
+                        "Semi-Detached House" = "Semi-Detached",
+                        "Detached House" = "Detached"))
+```
+
+```{r}
+# Filter for rows where Property Type is "Resale"
+resale_data <- combined_data %>%
+  filter(`Number of Units` == 1)
+
+# Create ggplot with filtered data
+ggplot(data = resale_data, 
+       aes(y = `Transacted Price ($)`, x = `Property Type`)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",       
+               fun = "mean",         
+               colour = "red",        
+               size = 4)
+```
+
+
+
+
