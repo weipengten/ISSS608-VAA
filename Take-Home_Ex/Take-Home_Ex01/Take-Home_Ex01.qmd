@@ -11,11 +11,12 @@ execute:
 ---
 
 ## The Task
+
 Assuming the role of a graphical editor of a median company, you are requested to prepare minimum two and maximum three data visualisation to reveal the private residential market and sub-markets of Singapore for the 1st quarter of 2024.
 
 ## The Data
-To accomplish the task, transaction data of REALIS will be used. A complete set of the private residential property transaction data from 1st January 2023 to 31st March 2024 have been downloaded via SMU e-library database service.
 
+To accomplish the task, transaction data of REALIS will be used. A complete set of the private residential property transaction data from 1st January 2023 to 31st March 2024 have been downloaded via SMU e-library database service.
 
 ## Install R Package
 
@@ -26,7 +27,6 @@ pacman::p_load(tidyverse,forcats)
 # 1. Importing Data
 
 We will import the data as a first step before proceeding with data cleaning, data wrangling and data ex
-
 
 ```{r}
 # Get list of CSV files in the directory
@@ -54,6 +54,7 @@ head(combined_data)
 ```{r}
 glimpse(combined_data)
 ```
+
 ::: callout-note
 **Some key observations of the data using `summary()`:**
 
@@ -76,6 +77,7 @@ summary(combined_data)
 ## 2.2. Missing Data
 
 ### Dealing with Missing Data
+
 **Let's get the rows that has the missing data!.**
 
 ```{r}
@@ -86,6 +88,7 @@ null_check
 ```
 
 Given the data above, it is impossible for us to understand if there is a systemic reason for the cause of missing data, hence we shall proceed to drop these rows from analysis.The current data now is reduced to **26800** observations from the initial **26806**.
+
 ```{r}
 # Filter out rows where `Area (SQM)` is not missing
 combined_data <- combined_data %>% 
@@ -97,6 +100,7 @@ We are not planning to utilise `Completion Date`, so we will not make any change
 ## 2.3. Data Type
 
 ### Converting Data Types
+
 **From the Data Exploration earlier, we found `'Sale Date'` to be in `chr` format, we need to change it to `date` format to analyze the data properly.**
 
 ```{r}
@@ -110,8 +114,6 @@ str(combined_data)
 head(combined_data)
 ```
 
-
-
 ## 2.4. Duplicates Check
 
 ### Dealing with Duplicates
@@ -119,6 +121,7 @@ head(combined_data)
 **Let's check for duplicates!**
 
 Passed initial checks in code chunk below for whole duplicate rows,
+
 ```{r}
 duplicate <- combined_data %>%
   group_by_all() %>%
@@ -137,7 +140,7 @@ filtered_data <- combined_data[combined_data$Address %in% duplicates$Address, ]
 ```
 :::
 
-# 3. Data Exploration 
+# 3. Data Exploration
 
 ::: panel-tabset
 ## 3.1. Categorical Data
@@ -157,14 +160,14 @@ unique_counts <- sapply(char_columns, function(col) length(unique(col)))
 print(unique_counts)
 
 ```
+
 ::: callout-note
 **Some key observations of the data using `summary()`:**
 
 -   Columns such as `Type of Sale` , `Type of Area`, `Property Type`, `Planning Region` , 'Purchaser Address Indicator' has few categories and require minimal transformations.
 
--   Columns such as `Project Name` , `Address`, `Tenure`, `Completion Date`, `Postal District`, ` Postal Code`, `Planning Area`   has many categories and might require grouping to be utilised effectively.
+-   Columns such as `Project Name` , `Address`, `Tenure`, `Completion Date`, `Postal District`, `Postal Code`, `Planning Area` has many categories and might require grouping to be utilised effectively.
 :::
-
 
 **Define a function to count and print unique categories for a given column.**
 
@@ -176,7 +179,9 @@ count_unique_categories <- function(data, column_name) {
   print(sorted_counts)
 }
 ```
+
 **Call the function for each column**
+
 ```{r}
 count_unique_categories(combined_data, 'Type of Sale')
 count_unique_categories(combined_data, 'Type of Area')
@@ -186,10 +191,11 @@ count_unique_categories(combined_data, 'Postal District')
 count_unique_categories(combined_data, 'Planning Region')
 count_unique_categories(combined_data, 'Planning Area')
 ```
+
 ::: callout-note
 **Some key observations of `Purchaser Address Indicator`**
 
--   Note that some information regarding `Purchaser Address Indicator`is not provided at all and is labelled as `N.A` and this amounts to `2733` rows of data having such a phenomena. 
+-   Note that some information regarding `Purchaser Address Indicator`is not provided at all and is labelled as `N.A` and this amounts to `2733` rows of data having such a phenomena.
 
 -   Further preprocessing needs to be taken if this data is required to be utilised.
 :::
@@ -216,18 +222,14 @@ print(column_ranges)
 summary(numeric_columns)
 ```
 
-
 ::: callout-note
 **Some key observations of the observed ranges**
 
--   It is evident from the wide range of all the numeric column features that criteria for analysis needs to be precisely set to allow for an accurate analysis 
+-   It is evident from the wide range of all the numeric column features that criteria for analysis needs to be precisely set to allow for an accurate analysis
+:::
 :::
 
-::: 
-
-# 3. Data Exploration (using Data Viz) 
-
-
+# 3. Data Exploration (using Data Viz)
 
 ```{r}
 # Define the new labels for each category
@@ -257,7 +259,3 @@ ggplot(data = resale_data,
                colour = "red",        
                size = 4)
 ```
-
-
-
-

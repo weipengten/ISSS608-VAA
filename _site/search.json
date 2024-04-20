@@ -214,7 +214,7 @@
     "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-themes",
     "title": "Hands-on Exercise 2",
     "section": "Beyond ggplot2 Themes",
-    "text": "Beyond ggplot2 Themes\n\n\nggplot2 comes with eight built-in themes, they are: theme_gray(), theme_bw(), theme_classic(), theme_dark(), theme_light(), theme_linedraw(), theme_minimal(), and theme_void().\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  theme_gray() +  \n  ggtitle(\"Distribution of Maths scores\") \n\n\n\nRefer to this link to learn more about ggplot2 Themes\n\n\n\n\n\n\n\n\n\n\n\nWorking with ggtheme package\n\n\nggthemes provides ‘ggplot2’ themes that replicate the look of plots by Edward Tufte, Stephen Few, Fivethirtyeight, The Economist, ‘Stata’, ‘Excel’, and The Wall Street Journal, among others.\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_economist()\n\n\n\nIt also provides some extra geoms and scales for ‘ggplot2’. Consult this vignette to learn more.\n\n\n\n\n\n\n\n\n\n\n\n\nWorking with hrbthems package\n\n\nhrbrthemes package provides a base theme that focuses on typographic elements, including where various labels are placed as well as the fonts that are used.\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_ipsum()\n\n\n\nThe second goal centers around productivity for a production workflow. In fact, this “production workflow” is the context for where the elements of hrbrthemes should be used. Consult this vignette to learn more.\n\n\n\n\n\n\n\n\n\n\n\n\nWorking with hrbthems package\n\n\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_ipsum(axis_title_size = 18, \n              base_size = 15, \n              grid = \"Y\") \n\n\n\n\n\n\n\n\nWhat can we learn from the code chunk below?\n\n\n\n\naxis_title_size argument is used to increase the font size of the axis title to 18,\nbase_size argument is used to increase the default axis label to 15, and\ngrid argument is used to remove the x-axis grid lines."
+    "text": "Beyond ggplot2 Themes\n\n\nggplot2 comes with eight built-in themes, they are: theme_gray(), theme_bw(), theme_classic(), theme_dark(), theme_light(), theme_linedraw(), theme_minimal(), and theme_void().\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  theme_gray() +  \n  ggtitle(\"Distribution of Maths scores\") \n\n\n\nRefer to this link to learn more about ggplot2 Themes\n\n\n\n\n\n\n\n\n\n\n\nWorking with ggtheme package\n\n\nggthemes provides ‘ggplot2’ themes that replicate the look of plots by Edward Tufte, Stephen Few, Fivethirtyeight, The Economist, ‘Stata’, ‘Excel’, and The Wall Street Journal, among others.\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_economist()\n\n\n\nIt also provides some extra geoms and scales for ‘ggplot2’. Consult this vignette to learn more.\n\n\n\n\n\n\n\n\n\n\n\n\nWorking with hrbthems package\n\n\nhrbrthemes package provides a base theme that focuses on typographic elements, including where various labels are placed as well as the fonts that are used.\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_ipsum()\n\n\n\nThe second goal centers around productivity for a production workflow. In fact, this “production workflow” is the context for where the elements of hrbrthemes should be used. Consult this vignette to learn more."
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-facet",
@@ -222,5 +222,61 @@
     "title": "Hands-on Exercise 2",
     "section": "Beyond ggplot2 facet",
     "text": "Beyond ggplot2 facet\n\n\nIn this section, you will learn how to create composite plot by combining multiple graphs. First, let us create three statistical graphics.\n\n\np1 &lt;- ggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") + \n  coord_cartesian(xlim=c(0,100)) +\n  ggtitle(\"Distribution of Maths scores\")\n\n\np2 &lt;- ggplot(data=exam_data, \n             aes(x = ENGLISH)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  coord_cartesian(xlim=c(0,100)) +\n  ggtitle(\"Distribution of English scores\")\n\n\n\n\n\np3 &lt;- ggplot(data=exam_data, \n             aes(x= MATHS, \n                 y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, \n              size=0.5) +  \n  coord_cartesian(xlim=c(0,100),\n                  ylim=c(0,100)) +\n  ggtitle(\"English scores versus Maths scores for Primary 3\")"
+  },
+  {
+    "objectID": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html",
+    "href": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html",
+    "title": "Take Home Exercise 1 - Geospatial Analytics for Public Good",
+    "section": "",
+    "text": "Assuming the role of a graphical editor of a median company, you are requested to prepare minimum two and maximum three data visualisation to reveal the private residential market and sub-markets of Singapore for the 1st quarter of 2024."
+  },
+  {
+    "objectID": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html#the-task",
+    "href": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html#the-task",
+    "title": "Take Home Exercise 1 - Geospatial Analytics for Public Good",
+    "section": "",
+    "text": "Assuming the role of a graphical editor of a median company, you are requested to prepare minimum two and maximum three data visualisation to reveal the private residential market and sub-markets of Singapore for the 1st quarter of 2024."
+  },
+  {
+    "objectID": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html#the-data",
+    "href": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html#the-data",
+    "title": "Take Home Exercise 1 - Geospatial Analytics for Public Good",
+    "section": "The Data",
+    "text": "The Data\nTo accomplish the task, transaction data of REALIS will be used. A complete set of the private residential property transaction data from 1st January 2023 to 31st March 2024 have been downloaded via SMU e-library database service."
+  },
+  {
+    "objectID": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html#install-r-package",
+    "href": "Take-Home_Ex/Take-Home_Ex01/Take-Home_Ex01.html#install-r-package",
+    "title": "Take Home Exercise 1 - Geospatial Analytics for Public Good",
+    "section": "Install R Package",
+    "text": "Install R Package\n\npacman::p_load(tidyverse,forcats)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
+    "title": "In-class Exercise 01",
+    "section": "",
+    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#loading-packages",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#loading-packages",
+    "title": "In-class Exercise 01",
+    "section": "",
+    "text": "Note\n\n\n\nIn the code chunk, p_load() and pacman package is used to load tidyverse family of packages\n\n\n\npacman::p_load(tidyverse)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-data",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-data",
+    "title": "In-class Exercise 01",
+    "section": "Importing Data",
+    "text": "Importing Data\n\nrealis &lt;-read_csv(\"data/realis2019.csv\")"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#r-graphics-vs-ggplot",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#r-graphics-vs-ggplot",
+    "title": "In-class Exercise 01",
+    "section": "R Graphics vs GGplot",
+    "text": "R Graphics vs GGplot\n\nggplot(data=realis, \n       aes(x = `Unit Price ($ psm)`)) +\n    geom_histogram()"
   }
 ]
