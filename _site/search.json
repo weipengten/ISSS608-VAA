@@ -180,5 +180,47 @@
     "title": "Take Home Exercise 1 - Geospatial Analytics for Public Good",
     "section": "2.4. Duplicates Check",
     "text": "2.4. Duplicates Check\nPassed initial checks in code chunk below for whole duplicate rows,\n\nduplicate &lt;- combined_data %&gt;%\n  group_by_all() %&gt;%\n  filter(n()&gt;1) %&gt;%\n  ungroup()\nduplicate\n\nProceed to checking for duplicates in the Address column, we seemed to have found 9 duplicated observations. However, they have different \"Sale Date\". As this is expected, we will ignore the case of duplicate address found here and proceed ahead.\n\nduplicates &lt;- combined_data[duplicated(combined_data$Address), ]\nfiltered_data &lt;- combined_data[combined_data$Address %in% duplicates$Address, ]"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html",
+    "title": "Hands-on Exercise 2",
+    "section": "",
+    "text": "Beyond ggplot2 Themes\nBeyond ggplot2 Annotation\nBeyond ggplot2 facet"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#content",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#content",
+    "title": "Hands-on Exercise 2",
+    "section": "",
+    "text": "Beyond ggplot2 Themes\nBeyond ggplot2 Annotation\nBeyond ggplot2 facet"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#getting-started",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#getting-started",
+    "title": "Hands-on Exercise 2",
+    "section": "Getting started",
+    "text": "Getting started\n\nInstalling and loading the required libraries\n\n\n\nBefore we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R packages. If they have yet to be installed, we will install the R packages and load them onto R environment.\nThe chunk code on the right will do the trick.\n\n\n\n\npacman::p_load(tidyverse, patchwork, \n               ggthemes, hrbrthemes,\n               ggrepel) \n\n\n\n\n\n\n\nImporting data\n\n\n\nThe code chunk below imports exam_data.csv into R environment using read_csv() function of readr package.\nreadr is one of the tidyverse package.\n\n\n\nexam_data &lt;- read_csv(\"data/Exam_data.csv\")\n\n\n\n\nYear end examination grades of a cohort of primary 3 students from a local school.\nThere are a total of seven attributes. Four of them are categorical data type and the other three are in continuous data type.\n\nThe categorical attributes are: ID, CLASS, GENDER and RACE.\nThe continuous attributes are: MATHS, ENGLISH and SCIENCE."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-annotation",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-annotation",
+    "title": "Hands-on Exercise 2",
+    "section": "Beyond ggplot2 Annotation",
+    "text": "Beyond ggplot2 Annotation\n\n\nOne of the challenge in plotting statistical graph is annotation, especially with large number of data points.\n\n\nggplot(data=exam_data, \n       aes(x= MATHS, \n           y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, \n              size=0.5) +  \n  geom_label(aes(label = ID), \n             hjust = .5, \n             vjust = -.5) +\n  coord_cartesian(xlim=c(0,100),\n                  ylim=c(0,100)) +\n  ggtitle(\"English scores versus Maths scores for Primary 3\")\n\n\n\n\n\n\n\n\n\n\n\n\nWorking with ggrepel\n\n\nggrepel is an extension of ggplot2 package which provides geoms for ggplot2 to repel overlapping text as in our examples on the right. We simply replace geom_text() by geom_text_repel() and geom_label() by geom_label_repel.\n\n\nggplot(data=exam_data, \n       aes(x= MATHS, \n           y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, \n              size=0.5) +  \n  geom_label_repel(aes(label = ID), \n                   fontface = \"bold\") +\n  coord_cartesian(xlim=c(0,100),\n                  ylim=c(0,100)) +\n  ggtitle(\"English scores versus Maths scores for Primary 3\")"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-themes",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-themes",
+    "title": "Hands-on Exercise 2",
+    "section": "Beyond ggplot2 Themes",
+    "text": "Beyond ggplot2 Themes\n\n\nggplot2 comes with eight built-in themes, they are: theme_gray(), theme_bw(), theme_classic(), theme_dark(), theme_light(), theme_linedraw(), theme_minimal(), and theme_void().\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  theme_gray() +  \n  ggtitle(\"Distribution of Maths scores\") \n\n\n\nRefer to this link to learn more about ggplot2 Themes\n\n\n\n\n\n\n\n\n\n\n\nWorking with ggtheme package\n\n\nggthemes provides ‘ggplot2’ themes that replicate the look of plots by Edward Tufte, Stephen Few, Fivethirtyeight, The Economist, ‘Stata’, ‘Excel’, and The Wall Street Journal, among others.\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_economist()\n\n\n\nIt also provides some extra geoms and scales for ‘ggplot2’. Consult this vignette to learn more.\n\n\n\n\n\n\n\n\n\n\n\n\nWorking with hrbthems package\n\n\nhrbrthemes package provides a base theme that focuses on typographic elements, including where various labels are placed as well as the fonts that are used.\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_ipsum()\n\n\n\nThe second goal centers around productivity for a production workflow. In fact, this “production workflow” is the context for where the elements of hrbrthemes should be used. Consult this vignette to learn more.\n\n\n\n\n\n\n\n\n\n\n\n\nWorking with hrbthems package\n\n\n\n\nggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  ggtitle(\"Distribution of Maths scores\") +\n  theme_ipsum(axis_title_size = 18, \n              base_size = 15, \n              grid = \"Y\") \n\n\n\n\n\n\n\n\nWhat can we learn from the code chunk below?\n\n\n\n\naxis_title_size argument is used to increase the font size of the axis title to 18,\nbase_size argument is used to increase the default axis label to 15, and\ngrid argument is used to remove the x-axis grid lines."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-facet",
+    "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#beyond-ggplot2-facet",
+    "title": "Hands-on Exercise 2",
+    "section": "Beyond ggplot2 facet",
+    "text": "Beyond ggplot2 facet\n\n\nIn this section, you will learn how to create composite plot by combining multiple graphs. First, let us create three statistical graphics.\n\n\np1 &lt;- ggplot(data=exam_data, \n             aes(x = MATHS)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") + \n  coord_cartesian(xlim=c(0,100)) +\n  ggtitle(\"Distribution of Maths scores\")\n\n\np2 &lt;- ggplot(data=exam_data, \n             aes(x = ENGLISH)) +\n  geom_histogram(bins=20, \n                 boundary = 100,\n                 color=\"grey25\", \n                 fill=\"grey90\") +\n  coord_cartesian(xlim=c(0,100)) +\n  ggtitle(\"Distribution of English scores\")\n\n\n\n\n\np3 &lt;- ggplot(data=exam_data, \n             aes(x= MATHS, \n                 y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, \n              size=0.5) +  \n  coord_cartesian(xlim=c(0,100),\n                  ylim=c(0,100)) +\n  ggtitle(\"English scores versus Maths scores for Primary 3\")"
   }
 ]

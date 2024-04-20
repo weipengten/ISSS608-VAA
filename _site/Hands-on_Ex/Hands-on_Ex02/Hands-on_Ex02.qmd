@@ -377,3 +377,117 @@ p3 <- ggplot(data=exam_data,
 :::
 :::
 :::
+
+------------------------------------------------------------------------
+
+### Creating Composite Graphics: pathwork methods
+
+::: columns
+::: {.column width="50%"}
+It is not unusual that multiple graphs are required to tell a compelling visual story. There are several ggplot2 extensions provide functions to compose figure with multiple graphs. In this section, I am going to shared with you [**patchwork**](https://patchwork.data-imaginist.com/index.html).
+
+Patchwork package has a very simple syntax where we can create layouts super easily. Here's the general syntax that combines: - Two-Column Layout using the Plus Sign +. - Parenthesis () to create a subplot group. - Two-Row Layout using the Division Sign `\`
+:::
+
+::: {.column width="50%"}
+![](img/image8.png)
+:::
+:::
+
+------------------------------------------------------------------------
+
+### Working with patchwork
+
+::: {style="font-size: 1.2em"}
+```{r}
+p1 + p2 / p3
+```
+:::
+
+------------------------------------------------------------------------
+
+### Working with patchwork
+
+\| will place the plots beside each other, while / will stack them.
+
+::: {style="font-size: 1.2em"}
+```{r}
+(p1 / p2) | p3
+```
+:::
+
+To learn more about, refer to [Plot Assembly](https://patchwork.data-imaginist.com/articles/guides/assembly.html).
+
+------------------------------------------------------------------------
+
+### Working with patchwork
+
+**patchwork** also provides auto-tagging capabilities, in order to identify subplots in text:
+
+::: {style="font-size: 1.2em"}
+```{r}
+((p1 / p2) | p3) + 
+  plot_annotation(tag_levels = 'I')
+```
+:::
+
+------------------------------------------------------------------------
+
+### Working with patchwork
+
+::: {style="font-size: 1.2em"}
+```{r fig.width=12, fig.height=6}
+patchwork <- (p1 / p2) | p3
+patchwork & theme_economist()
+```
+:::
+
+------------------------------------------------------------------------
+
+### Working with patchwork
+
+::: columns
+::: {.column width="50%"}
+Beside providing functions to place plots next to each other based on the provided layout. With [`inset_element()`](https://patchwork.data-imaginist.com/reference/inset_element.html) of **patchwork**, we can place one or several plots or graphic elements freely on top or below another plot.
+
+::: {style="font-size: 1.2em"}
+```{r}
+#| eval: false
+p3 + inset_element(p2, 
+                   left = 0.02, 
+                   bottom = 0.7, 
+                   right = 0.5, 
+                   top = 1)
+```
+:::
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| fig-height: 9
+p12 <- p1|p2
+p3 + inset_element(p2, 
+                   left = 0.02, 
+                   bottom = 0.7, 
+                   right = 0.5, 
+                   top = 1)
+```
+:::
+:::
+
+## Reference
+
+-   [Patchwork R package goes nerd viral](https://www.littlemissdata.com/blog/patchwork)
+-   [ggrepel](https://ggrepel.slowkow.com/index.html)
+-   [ggthemes](https://ggplot2.tidyverse.org/reference/ggtheme.html)
+-   [hrbrthemes](https://cinc.rud.is/web/packages/hrbrthemes/)
+-   [ggplot tips: Arranging plots](https://albert-rapp.de/post/2021-10-28-extend-plot-variety/)
+-   [ggplot2 Theme Elements Demonstration](https://henrywang.nl/ggplot2-theme-elements-demonstration/)
+-   [ggplot2 Theme Elements Reference Sheet](https://isabella-b.com/blog/ggplot2-theme-elements-reference/)
+
+```{r}
+#| eval: false
+#| echo: false
+renderthis::to_pdf(from = "https://isss608-ay2022-23jan.netlify.app/hands-on_ex/Hands-on_Ex02/Hands-on_Ex02-Beyond_ggplot2.html")
+```
