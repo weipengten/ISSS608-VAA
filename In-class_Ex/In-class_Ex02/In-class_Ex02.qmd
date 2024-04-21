@@ -17,7 +17,7 @@ In the code chunk, p_load() and [**pacman**](https://cran.r-project.org/web/pack
 :::
 
 ```{r}
-pacman::p_load(tidyverse, ggdist,ggthemes, colorspace, ggridges)
+pacman::p_load(tidyverse, ggdist, ggthemes, colorspace, ggridges)
 ```
 
 ## Importing Data
@@ -106,8 +106,8 @@ ggplot(data = exam_df, aes(x = ENGLISH)) +
   ) +
   annotate(
     geom = "text",
-    x = mean_eng - 8,
-    y = 0.04,
+    x = mean_eng - 14,
+    y = 0.03,
     label = paste0("Mean ENGLISH: ", round(mean_eng, 2)),
     color = "#4d5887"
   ) +

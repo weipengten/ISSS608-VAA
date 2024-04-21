@@ -141,7 +141,7 @@ ggplot(data=exam_data)
 -   If the dataset is not already a data.frame, it will be converted to one by `fortify()`.
 :::
 
-##  1.6 Essential Grammatical Elements in ggplot2: [Aesthetic mappings](https://ggplot2.tidyverse.org/reference/aes.html)
+## 1.6 Essential Grammatical Elements in ggplot2: [Aesthetic mappings](https://ggplot2.tidyverse.org/reference/aes.html)
 
 -   The aesthetic mappings take attributes of the data and and use them to influence visual characteristics, such as position, colour, size, shape, or transparency.Each visual characteristic can thus encode an aspect of the data and be used to convey information.
 
@@ -160,29 +160,15 @@ ggplot(data=exam_data,
 -   Notice that ggplot includes the x-axis and the axis's label.
 :::
 
-
 ```{r}
 #| echo: false
 ggplot(data=exam_data, 
        aes(x= MATHS))
 ```
 
-
 ## 1.7 Essential Grammatical Elements in ggplot2: geom
 
-
-Geometric objects are the actual marks we put on a plot. Examples include:
-::: {style="font-size: 0.8em"}
--   *geom_point* for drawing individual points (e.g., a scatter plot)
--   *geom_line* for drawing lines (e.g., for a line charts)
--   *geom_smooth* for drawing smoothed lines (e.g., for simple trends or approximations)
--   *geom_bar* for drawing bars (e.g., for bar charts)
--   *geom_histogram* for drawing binned values (e.g. a histogram)
--   *geom_polygon* for drawing arbitrary shapes
--   *geom_map* for drawing polygons in the shape of a map! (You can access the data to use for these maps by using the map_data() function).
-:::
-
-
+Geometric objects are the actual marks we put on a plot. Examples include: ::: {style="font-size: 0.8em"} - *geom_point* for drawing individual points (e.g., a scatter plot) - *geom_line* for drawing lines (e.g., for a line charts) - *geom_smooth* for drawing smoothed lines (e.g., for simple trends or approximations) - *geom_bar* for drawing bars (e.g., for bar charts) - *geom_histogram* for drawing binned values (e.g. a histogram) - *geom_polygon* for drawing arbitrary shapes - *geom_map* for drawing polygons in the shape of a map! (You can access the data to use for these maps by using the map_data() function). :::
 
 ![](img/image6.jpg)
 
@@ -190,7 +176,6 @@ Geometric objects are the actual marks we put on a plot. Examples include:
 -   A plot must have at least one geom; there is no upper limit. You can add a geom to a plot using the **+** operator.
 -   For complete list, please refer to [here](https://ggplot2.tidyverse.org/reference/#section-layer-geoms).
 :::
-
 
 ### 1.7.1 Essential Grammatical Elements in ggplot2: [*geom_bar*](https://ggplot2.tidyverse.org/reference/geom_bar.html)
 
@@ -204,14 +189,11 @@ ggplot(data=exam_data,
   geom_bar()
 ```
 
-
-
 ```{r}
 #| echo: false
 ggplot(data=exam_data, aes(x=RACE)) +
   geom_bar()
 ```
-
 
 ### 1.7.2 Essential Grammatical Elements in ggplot2: geom_dotplot
 
@@ -225,13 +207,11 @@ ggplot(data=exam_data,
   geom_dotplot(dotsize = 0.5)
 ```
 
-
 ::: callout-warning
 ### Be warned
 
 The y scale is not very useful, in fact it is very misleading.
 :::
-
 
 ::: callout-note
 The code chunk below performs the following two steps:
@@ -251,14 +231,12 @@ ggplot(data=exam_data,
                      breaks = NULL)  
 ```
 
-
 ```{r}
 #| echo: false
 ggplot(data=exam_data, aes(x = MATHS)) +
   geom_dotplot(binwidth=2.5, dotsize = 0.5) +
   scale_y_continuous(NULL, breaks = NULL)
 ```
-
 
 ### 1.7.3. Essential Grammatical Elements in ggplot2s: `geom_histogram()`
 
@@ -276,7 +254,6 @@ ggplot(data=exam_data,
 Note that the default bin is **30**.
 :::
 
-
 ```{r}
 #| echo: false
 #| fig-height: 6
@@ -284,7 +261,6 @@ ggplot(data=exam_data,
        aes(x = MATHS)) +
   geom_histogram()
 ```
-
 
 ### 1.7.4. Modifying a geometric object by changing `geom()`
 
@@ -304,7 +280,6 @@ ggplot(data=exam_data,
                  fill="light blue")  
 ```
 
-
 ```{r}
 #| echo: false
 #| fig-height: 6
@@ -315,9 +290,7 @@ ggplot(data=exam_data,
                  fill="light blue")
 ```
 
-
 ### 1.7.5 Modifying a geometric object by changing *aes()*
-
 
 -   The code chunk below changes the interior colour of the histogram (i.e. *fill*) by using sub-group of *aesthetic()*.
 
@@ -335,7 +308,6 @@ ggplot(data=exam_data,
 This approach can be used to colour, fill and alpha of the geometric.
 :::
 
-
 ```{r}
 #| echo: false
 #| fig-height: 6
@@ -346,9 +318,7 @@ ggplot(data=exam_data,
                  color="grey30")
 ```
 
-
 ### 1.7.6. Geometric Objects: geom-density
-
 
 [`geom-density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) computes and plots kernel density estimate, which is a smoothed version of the histogram.
 
@@ -373,9 +343,6 @@ ggplot(data=exam_data,
   geom_density()
 ```
 
-
-
-
 The code chunk below plots two kernel density lines by using *colour* or *fill* arguments of *aes()*
 
 ```{r, echo=TRUE, eval=FALSE, fig.width=8, fig.height=6}
@@ -395,11 +362,7 @@ ggplot(data=exam_data,
   geom_density()
 ```
 
-
-
-
 ### 1.7.7. Geometric Objects: geom-boxplot
-
 
 -   [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html) displays continuous value list. It visualises five summary statistics (the median, two hinges and two whiskers), and all "outlying" points individually.\
 -   The code chunk below plots boxplots by using *geom_boxplot()*.\]
@@ -420,8 +383,6 @@ ggplot(data=exam_data,
            x= GENDER)) +
   geom_boxplot()
 ```
-
-
 
 **Notches** are used in box plots to help visually assess whether the medians of distributions differ. If the notches do not overlap, this is evidence that the medians are different.
 
@@ -446,10 +407,7 @@ ggplot(data=exam_data,
   geom_boxplot(notch=TRUE)  
 ```
 
-
-
 ### 1.7.8 Essential Grammatical Elements in ggplot2: geom_violin
-
 
 [`geom_violin`](https://ggplot2.tidyverse.org/reference/geom_violin.html) is designed for creating violin plot. Violin plots are a way of comparing multiple data distributions. With ordinary density curves, it is difficult to compare more than just a few distributions because the lines visually interfere with each other. With a violin plot, it's easier to compare several distributions since they're placed side by side.
 
@@ -471,8 +429,6 @@ ggplot(data=exam_data,
            x= GENDER)) +
   geom_violin() 
 ```
-
-
 
 ### 1.7.9 Essential Grammatical Elements in ggplot2: `geom_point()`
 
@@ -499,7 +455,6 @@ ggplot(data=exam_data,
 
 ### 1.7.10.1. Essential Grammatical Elements in ggplot2s: `geom_violin()` and `geom_boxplot()`
 
-
 The code chunk below combined a violin plot and a boxplot to show the distribution of Maths scores by gender.\]
 
 ```{r}
@@ -512,7 +467,6 @@ ggplot(data=exam_data,
   geom_boxplot(alpha=0.5)           
 ```
 
-
 ```{r}
 #| echo: false
 ggplot(data=exam_data, 
@@ -521,7 +475,6 @@ ggplot(data=exam_data,
   geom_violin(fill="light blue") +
   geom_boxplot(alpha=0.5)
 ```
-
 
 ### 1.7.10.2 Essential Grammatical Elements in ggplot2: *geom* objects can be combined
 
@@ -538,7 +491,6 @@ ggplot(data=exam_data,
              size = 0.5)        #<<
 ```
 
-
 ```{r}
 #| echo: false
 ggplot(data=exam_data, 
@@ -548,7 +500,6 @@ ggplot(data=exam_data,
   geom_point(position="jitter", 
              size = 0.5)
 ```
-
 
 ## 1.8. Essential Grammatical Elements in ggplot2: *stat*
 
@@ -598,7 +549,6 @@ ggplot(data=exam_data,
                size=4)
 ```
 
-
 ### 1.8.3. Working with stat - the `geom()` method
 
 The code chunk below adding mean values by using `geom_()` function and overriding the default stat.
@@ -615,7 +565,6 @@ ggplot(data=exam_data,
              size=4)          
 ```
 
-
 ```{r}
 #| echo: false
 ggplot(data=exam_data, 
@@ -627,9 +576,7 @@ ggplot(data=exam_data,
              size=4)
 ```
 
-
 ### 1.8.4 How to add a best fit curve on a scatterplot?
-
 
 -   The scatterplot on the right shows the relationship of Maths and English grades of pupils.
 
@@ -643,7 +590,6 @@ ggplot(data=exam_data,
            y=ENGLISH)) +
   geom_point()
 ```
-
 
 In the code chunk below, [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html) is used to plot a best fit curve on the scatterplot.
 
@@ -691,7 +637,6 @@ ggplot(data=exam_data,
               size=0.5)
 ```
 
-
 ## 1.9. Essential Grammatical Elements in ggplot2: Facets
 
 -   Facetting generates small multiples (sometimes also called trellis plot), each displaying a different subset of the data.
@@ -730,7 +675,6 @@ ggplot(data=exam_data, aes(x= MATHS)) +
 -   [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html) forms a matrix of panels defined by row and column facetting variables.
 
 -   It is most useful when you have two discrete variables, and all combinations of the variables exist in the data.
-
 
 The code chunk below plots a trellis plot using `facet_grid()`.
 
@@ -787,8 +731,6 @@ ggplot(data=exam_data,
   coord_flip()
 ```
 
-
-
 ### 1.10.2 How to change to the y- and x-axis range?
 
 The scatterplot on the right is slightly misleading because the y-aixs and x-axis range are not equal.
@@ -830,19 +772,7 @@ ggplot(data=exam_data,
 
 ## 1.11. Essential Grammatical Elements in ggplot2: Themes
 
-Themes control elements of the graph not related to the data. For example:
-::: {style="font-size: 0.8em"}
--   background colour
--   size of fonts
--   gridlines
--   colour of labels
-:::
-Built-in themes include:
--   `theme_gray()` (default)
--   `theme_bw()`
--   `theme_classic()`
-A list of theme can be found at this [link](https://ggplot2.tidyverse.org/reference/ggtheme.html).
-Each theme element can be conceived of as either a line (e.g. x-axis), a rectangle (e.g. graph background), or text (e.g. axis title).
+Themes control elements of the graph not related to the data. For example: ::: {style="font-size: 0.8em"} - background colour - size of fonts - gridlines - colour of labels ::: Built-in themes include: - `theme_gray()` (default) - `theme_bw()` - `theme_classic()` A list of theme can be found at this [link](https://ggplot2.tidyverse.org/reference/ggtheme.html). Each theme element can be conceived of as either a line (e.g. x-axis), a rectangle (e.g. graph background), or text (e.g. axis title).
 
 ### 1.11.1 Working with theme
 
@@ -877,7 +807,6 @@ ggplot(data=exam_data,
   coord_flip() +
   theme_classic()
 ```
-
 
 A horizontal bar chart plotted using `theme_minimal()`.
 
