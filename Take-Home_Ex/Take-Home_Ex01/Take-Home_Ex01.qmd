@@ -21,7 +21,8 @@ To accomplish the task, transaction data of REALIS will be used. A complete set 
 ## Install R Package
 
 ```{r}
-pacman::p_load(tidyverse,forcats)
+pacman::p_load(tidyverse,ggrepel, patchwork, hrbrthemes, forcats,ggdist, ggridges,
+               ggthemes,colorspace,lubridate, cowplot)
 ```
 
 # 1. Importing Data
@@ -29,6 +30,8 @@ pacman::p_load(tidyverse,forcats)
 We will import the data as a first step before proceeding with data cleaning, data wrangling and data ex
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Get list of CSV files in the directory
 file_list <- list.files(path = "data", pattern = "*.csv", full.names = TRUE)
 
@@ -81,6 +84,8 @@ summary(combined_data)
 **Let's get the rows that has the missing data!.**
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Check for the rows with null values
 null_check <- combined_data %>% 
                   filter(is.na(`Area (SQM)`))
@@ -90,6 +95,8 @@ null_check
 Given the data above, it is impossible for us to understand if there is a systemic reason for the cause of missing data, hence we shall proceed to drop these rows from analysis.The current data now is reduced to **26800** observations from the initial **26806**.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Filter out rows where `Area (SQM)` is not missing
 combined_data <- combined_data %>% 
                   filter(!is.na(`Area (SQM)`))
@@ -104,6 +111,8 @@ We are not planning to utilise `Completion Date`, so we will not make any change
 **From the Data Exploration earlier, we found `'Sale Date'` to be in `chr` format, we need to change it to `date` format to analyze the data properly.**
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 combined_data <- combined_data %>%
   mutate(`Sale Date` = as.Date(`Sale Date`, format = "%d %b %Y"))
 
@@ -123,6 +132,8 @@ head(combined_data)
 Passed initial checks in code chunk below for whole duplicate rows,
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 duplicate <- combined_data %>%
   group_by_all() %>%
   filter(n()>1) %>%
@@ -150,6 +161,8 @@ filtered_data <- combined_data[combined_data$Address %in% duplicates$Address, ]
 **Let's get an understanding of the number of unique categories in our categorical data.**
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Filter character columns
 char_columns <- Filter(is.character, combined_data)
 
@@ -164,7 +177,7 @@ print(unique_counts)
 ::: callout-note
 **Some key observations of the data using `summary()`:**
 
--   Columns such as `Type of Sale` , `Type of Area`, `Property Type`, `Planning Region` , 'Purchaser Address Indicator' has few categories and require minimal transformations.
+-   Columns such as `Type of Sale` , `Type of Area`, `Property Type`, `Planning Region` , `Purchaser Address Indicator` has few categories and require minimal transformations.
 
 -   Columns such as `Project Name` , `Address`, `Tenure`, `Completion Date`, `Postal District`, `Postal Code`, `Planning Area` has many categories and might require grouping to be utilised effectively.
 :::
@@ -172,6 +185,8 @@ print(unique_counts)
 **Define a function to count and print unique categories for a given column.**
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 count_unique_categories <- function(data, column_name) {
   cat("**", column_name, "**\n", sep = "")
   category_counts <- table(data[[column_name]])
@@ -183,6 +198,8 @@ count_unique_categories <- function(data, column_name) {
 **Call the function for each column**
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 count_unique_categories(combined_data, 'Type of Sale')
 count_unique_categories(combined_data, 'Type of Area')
 count_unique_categories(combined_data, 'Property Type')
@@ -207,6 +224,8 @@ count_unique_categories(combined_data, 'Planning Area')
 **Let's get an understanding of the data range in our Continuous data.**
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Filter character columns
 numeric_columns <- Filter(is.numeric, combined_data)
 
@@ -219,6 +238,8 @@ print(column_ranges)
 ```
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 summary(numeric_columns)
 ```
 
@@ -229,33 +250,372 @@ summary(numeric_columns)
 :::
 :::
 
-# 3. Data Exploration (using Data Viz)
+# 4. Data Visualisation (1)
+
+::: panel-tabset
+## 4.1. Data Prep
+
+### Performing the necessary and additional preprocessing before visualisation
+
+We first added some filters to the dataset required to provide an accurate analysis. This includes:
+
+-   `Number of Units` == 1 as we are only interested in individual sales
+-   `Tenure` of 99 Years as this is the most common lease type
+
+We named the resulting dataframe after applying the filters as *resale_data*  
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 # Define the new labels for each category
 new_labels <- c("Apartment", "Condo", "Executive Condo", "Terrace", "Semi-Detached", "Detached")
 
 combined_data = combined_data %>%
   mutate(`Property Type` = recode(`Property Type`, 
                         "Apartment" = "Apartment",
-                        "Condominium " = "Condo",
+                        "Condominium" = "Condo",
                         "Executive Condominium" = "Executive Condos",
                         "Terrace House" = "Terrace",
                         "Semi-Detached House" = "Semi-Detached",
                         "Detached House" = "Detached"))
+
+# Filter Conditions
+resale_data <- combined_data %>%
+  filter(`Number of Units` == 1)%>%
+  filter(grepl("99 yrs", Tenure, ignore.case = TRUE))
 ```
+## 4.2. Visualisation
+
+### The following visualization highlights the differences shared across all Property Types in terms of:
+
+-   Distribution of Unit Price ($ PSF) across Property Types in Chart I
+-   Distribution of Transacted Price across Property Types in Chart II
 
 ```{r}
-# Filter for rows where Property Type is "Resale"
-resale_data <- combined_data %>%
-  filter(`Number of Units` == 1)
+#| code-fold: true
+#| code-summary: "Show the code"      
+plot1 <- ggplot(resale_data, 
+       aes(x = `Unit Price ($ PSF)`, 
+           y = `Property Type`)) +
+  stat_halfeye(adjust = 0.8,
+               justification = -0.2,
+               .width = 0,
+               point_colour = NA) +
+  geom_boxplot(width = .20,
+               outlier.shape = NA) +
+  stat_dots(side = "left", 
+            justification = 1.2, 
+            binwidth = .5,
+            dotsize = 1) +
+    
+  theme_ipsum(axis_title_size = 10,
+              base_size = 10,
+              grid = "Y") +
+  
+  plot_annotation(title = "Distribution of Unit Price ($ PSF) across Property Types",
+                  subtitle = "Higher Median Transaction Prices do not necesarily imply Higher Median Unit Price ($ PSF) ",
+                  theme = theme(plot.title = element_text(hjust = 0),
+                                plot.background = element_rect(fill = "#f5f5f5", colour = "#f5f5f5"),
+                                panel.border = element_blank())) +
+  
+  # Adjust plot size
+  labs(x = "Unit Price ($ PSF)", y= NULL) +
+  theme(plot.margin = margin(10, 30, 25, 10),  # Adjust plot margins
+        plot.title = element_text(size = 5, hjust = 0.3))
 
-# Create ggplot with filtered data
-ggplot(data = resale_data, 
-       aes(y = `Transacted Price ($)`, x = `Property Type`)) +
-  geom_boxplot() +
-  stat_summary(geom = "point",       
-               fun = "mean",         
-               colour = "red",        
-               size = 4)
+
+plot2 <- ggplot(resale_data, 
+       aes(x = `Transacted Price ($)`, 
+           y = `Property Type`,
+           fill = stat(x))) +
+  geom_density_ridges_gradient(
+    scale = 3,
+    rel_min_height = 0.01) +
+  scale_fill_viridis_c(name = NULL,
+                       option = "C") +
+  scale_x_continuous(
+    name = "Transacted Price ($)",
+    expand = c(0, 0)
+  ) +
+  scale_y_discrete(name = NULL, expand = expansion(add = c(0.2, 2.6))) +
+theme_ipsum(axis_title_size = 10,
+              base_size = 10,
+              grid = "Y")+
+  theme(axis.text.x = element_blank()) +
+  ggtitle("Distribution of Transacted Price") +
+  
+  # Adjust plot size
+  labs(x = "Transacted Price ($)", y= NULL) +
+  theme(plot.margin = margin(10, 10, 10, 20), 
+        plot.title = element_text(size = 8, hjust = 0.5)) 
+
+
+final_plot <-plot1 + inset_element(plot2, 
+                   left = 0.45, 
+                   bottom = 0.35, 
+                   right = 1.3, 
+                   top = 1.10) + 
+  plot_annotation(tag_levels = 'I')
+
+# Print the final plot
+final_plot
 ```
+
+Here are some findings w.r.t `PSF`and `Transaction Prices` across all the `Property Types`:
+
+-   **Finding1:** Both the <span style="color:red;">Interquartile Range (IQR)</span> and density distribution is the narrowest for Executive Condominiums, closely followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. It is the widest for Detached Houses.
+    -  ***What this means is that:*** The spread or variability of the `PSF` is the least for Executive Condominium, followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. In other words, the *prices for these property types tend to cluster more closely around the median, as indicated by their smaller Interquartile Ranges (IQRs)*.On the other hand, Detached Houses have the largest IQR, indicating that the *prices for Detached Houses are more spread out across a wider range.* This means that there can be *significant variability in prices for Detached Houses*, with some properties priced much higher or lower than the median.
+    
+-   **Finding2:** The <span style="color:red;">Median </span> is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median `PSF`. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median `Transacted Prices`despite having higher `PSF`.
+    -  ***What this means is that:***  Comparing PSF between dissimilar property types, such as a condo and a landed property, may not provide an accurate sense of value and affordability. When comparing properties for value, PSF is best used between two similar property type or better, within the same project or block.(Chong, 2020)
+    
+:::
+
+# 5. Data Visualisation (2)
+
+::: panel-tabset
+## 5.1. Data Prep
+
+### Performing the necessary and additional preprocessing before visualisation
+
+We can further explore the trend of $PSF over different time intervals like months and quarters. 
+First, we need to generate extra date-related variables including `Quarter`, `Month`, and `Year`. Additionally, we've introduced a new variable called `Quarter Year`.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"     
+resale_data <- resale_data %>%
+  mutate(Year = year(`Sale Date`),
+         Quarter = quarter(`Sale Date`),
+         Month = month(`Sale Date`),
+         Quarter_Year = paste0("Q",quarter(`Sale Date`), " ",year(`Sale Date`))) %>%
+   mutate(
+    Quarter_Year = factor(Quarter_Year,
+                          levels = c("Q1 2023",
+                                     "Q2 2023", "Q3 2023", "Q4 2023", "Q1 2024"))
+  )
+```
+Second,  monthly average unit prices are calculated for different property types (Apartment, Condo, Executive Condos, and other types like Terrace, Semi-Detached, and Detached). Each calculation involves filtering the resale_data based on property type, converting the Sale Date column to Date type, grouping the data by quarter-year and year-month, and then summarizing the average unit price for each group. Finally, the results are stored in separate data frames (Apartment_monthly_avg, Condo_monthly_avg, ExecCondo_monthly_avg, and Others_monthly_avg).
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"     
+
+# Calculate monthly average unit price
+Apartment_monthly_avg <- resale_data %>%
+  filter(`Property Type`=="Apartment") %>%
+  mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
+  group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
+  summarise(Count = n())
+
+
+Condo_monthly_avg <- resale_data %>%
+  filter(`Property Type`=="Condo") %>%
+  mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
+  group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
+  summarise(Count = n())
+
+
+ExecCondo_monthly_avg <- resale_data %>%
+  filter(`Property Type`=="Executive Condos") %>%
+  mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
+  group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
+  summarise(Count = n())
+
+
+Others_monthly_avg <- resale_data %>%
+  filter(`Property Type` %in% c("Terrace", "Semi-Detached", "Detached")) %>%
+  mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
+  group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
+  summarise(Count = n())
+
+```
+## 5.2. Visualisation
+Finally, we create column and line charts to visualize the trends in the property sales over time for different property types. It starts by plotting separate charts for apartments, condos, executive condos, and other property types. Each plot represents the average unit price per month, with columns indicating different quarter-years.
+
+The code then combines all the individual plots into one comprehensive visualization using the *plot_grid()* function.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"     
+# Plotting column chart for monthly apartment property sales
+plot1 <- ggplot(Apartment_monthly_avg, 
+                aes(x = Year_Month, 
+                    y = Count, 
+                    fill = Quarter_Year)) +
+  geom_col(width = 0.8) + 
+  geom_line(aes(group = 1), color = "black") +
+  labs(x = NULL, 
+       y = "Apartment") +
+  scale_fill_manual(values = c("#1696d2", "#f8766d", "#00ba38", "#619cff", "#f564e3", "#a2daff")) +
+  theme_economist() +
+
+  theme(legend.position = "none",  
+        axis.text.y = element_text(angle = 0, size = 8, color = "black"),  # Adjust y-axis labels
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8, color = "black", margin = margin(t = 0, r = 0, b = 0, l = 0)),  # Adjust x-axis labels
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)) , 
+    plot.margin = margin(0.1, 0.5, 0, 0.5, "cm"),  # Set margins
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.spacing = unit(0.01, "lines"))
+
+# Plotting column chart for Condo monthly property sales
+plot2 <- ggplot(Condo_monthly_avg, 
+                aes(x = Year_Month, 
+                    y = Count, 
+                    fill = Quarter_Year)) +
+  geom_col(width = 0.8) + 
+  geom_line(aes(group = 1), color = "black") +
+  labs(x = NULL, 
+        y = "Condo") +
+  scale_fill_manual(values = c("#1696d2", "#f8766d", "#00ba38", "#619cff", "#f564e3", "#a2daff")) +
+  theme_economist()+
+
+  theme(legend.position = "none",  
+        axis.text.y = element_text(angle = 0, size = 8, color = "black"),  # Adjust y-axis labels
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8, color = "black", margin = margin(t = 0, r = 0, b = 0, l = 0)),  # Adjust x-axis labels
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)), 
+    plot.margin = margin(0, 0.5, 0, 0.5, "cm"),  # Set margins
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.spacing = unit(0, "lines"))
+
+# Plotting column chart for Executive Condo monthly property sales
+plot3 <- ggplot(ExecCondo_monthly_avg, 
+                aes(x = Year_Month, 
+                    y = Count, 
+                    fill = Quarter_Year)) +
+  geom_col(width = 0.8) + 
+  geom_line(aes(group = 1), color = "black") +
+  labs(x = NULL, 
+       y = "Executive Condo") +
+  scale_fill_manual(values = c("#1696d2", "#f8766d", "#00ba38", "#619cff", "#f564e3", "#a2daff")) +
+  theme_economist()+
+  theme(
+    legend.position = "right",  # Place legend on the right side
+    legend.direction = "vertical",  # Vertical legend
+    legend.title = element_text(size = 10),  # Legend title
+    legend.text = element_text(size = 8),  # Smaller legend text
+    axis.text.y = element_text(angle = 0, size = 8, color = "black"),  # Adjust y-axis labels
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8, color = "black", margin = margin(t = 0, r = 0, b = 0, l = 0)),  # Adjust x-axis labels
+    axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)), 
+    plot.margin = margin(0, 0.5, 0, 0.5, "cm"),  # Set margins
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.spacing = unit(0, "lines"))
+
+# Plotting column chart for "Terrace"Others" monthly property sales
+plot4 <- ggplot(Others_monthly_avg, 
+                aes(x = Year_Month, 
+                    y = Count, 
+                    fill = Quarter_Year)) +
+  geom_col(width = 0.8) + 
+  geom_line(aes(group = 1), color = "black") +
+  labs(x = NULL, 
+       y = "Others") +
+  scale_fill_manual(values = c("#1696d2", "#f8766d", "#00ba38", "#619cff", "#f564e3", "#a2daff")) +
+  theme_economist() +
+
+  theme(legend.position = "none",  
+        axis.text.y = element_text(angle = 0, size = 8, color = "black"),  # Adjust y-axis labels
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8, color = "black", margin = margin(t = 0, r = 0, b = 0, l = 0)),  # Adjust x-axis labels
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)), 
+    plot.margin = margin(0, 0.5, 0, 0.5, "cm"),  # Set margins
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.spacing = unit(0, "lines"))
+
+
+allplots <- plot1/plot2/plot3/plot4
+
+# Title and subtitle
+title <- "Trends in Property Sales Over Time"
+subtitle <- "Analysis of property sales for Apartments, Condominiums, Executive Condominiums, and Others"
+
+# Add title and subtitle
+allplots_with_title <- allplots + plot_annotation(
+  title = title,
+  caption = subtitle,
+  theme = theme(plot.title = element_text(size = 14, face = "bold"),
+                plot.caption = element_text(size = 9, face = "italic"))
+)
+
+# Print combined plot with title and subtitle
+print(allplots_with_title)
+```
+
+*General Trend:*
+
+-   Results show that most of the Property Types' sales tend to spike at least once between end of Q2 2023 to August 2023.
+-   Property Sales tend to be lower during Q4 2023 and start of Q1 2024.
+-   Property Sales tend to peak for a month or so instead of a few months at a time.
+
+*Specific Property Trends:*
+
+-   Apartment and Executive Condominium sales tend to be more volatile with higher variation throughout the year.
+-   Condominium sales trend is quite flat throughout the year from Q1 2023 to Q1 2024.
+-   "Others" sales trend is also quite flat throughout the year from Q1 2023 to Q1 2024 with the exception of June 2023.
+-   
+:::
+
+
+
+# 6. Data Visualisation (3)
+
+In this section, we want to figure out which property type does the majority of the buyers convert from and to which property type too. This can be achieved by analyzing the `Purchase Address Indicator`
+
+::: panel-tabset
+## 6.1. Data Prep
+
+### Performing the necessary and additional preprocessing before visualisation
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+purchaseindicator_allsales <- combined_data %>%
+  filter(`Number of Units` == 1)%>%
+  filter(grepl("99 yrs", Tenure, ignore.case = TRUE)) %>%
+  filter(!(`Purchaser Address Indicator`=="N.A")) %>%
+  group_by(`Property Type`,`Purchaser Address Indicator`) %>%
+  summarise(Count = n())
+
+```
+
+## 6.1. Data Visualisation
+
+```{r}
+# Plot a stacked bar chart for 'Apartment' sales
+stacked_bar <- ggplot(purchaseindicator_allsales, aes(x = `Property Type`, y = Count, fill = `Purchaser Address Indicator`)) +
+  geom_bar(stat = "identity") +
+  labs(x = NULL, y = "Count", fill = "Purchaser Address Indicator") +
+  scale_fill_manual(values = c("Private" = "#1696d2", "HDB" = "#f8766d")) +  # Adjust fill colors
+  theme_economist() +
+  theme(
+    legend.position = "right",  # Place legend on the right side
+    legend.direction = "vertical",  # Vertical legend
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8, color = "black"),  # Adjust x-axis labels
+    axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)),  # Adjust y-axis title margin
+    plot.margin = margin(0.1, 0.5, 0, 0.5, "cm"),  # Set margins
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.spacing = unit(0.01, "lines")
+  )
+
+# Print the stacked bar chart
+print(stacked_bar)
+
+```
+
+From our findings:
+
+-   Most of the HDB converters purchase Apartment, Condos and Executive Condos. Few purchased Detached , semi-Detached and Terrace Houses
+
+-  Also, most of the house buyers are past private property owners with the exception for executive condos.
+
+   
+## References    
+
+-   [Why Does A Condo Have A Higher Price Per Square Foot Than A bungalow?](https://ronchongproperty.sg/why-does-a-condo-have-a-higher-price-per-square-foot-than-a-bungalow/)
+    
