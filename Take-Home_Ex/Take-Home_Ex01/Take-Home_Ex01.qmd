@@ -586,6 +586,8 @@ purchaseindicator_allsales <- combined_data %>%
 ## 6.1. Data Visualisation
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
 # Plot a stacked bar chart for 'Apartment' sales
 stacked_bar <- ggplot(purchaseindicator_allsales, aes(x = `Property Type`, y = Count, fill = `Purchaser Address Indicator`)) +
   geom_bar(stat = "identity") +
