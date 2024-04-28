@@ -206,8 +206,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#data-visualisation-2" id="toc-data-visualisation-2" class="nav-link" data-scroll-target="#data-visualisation-2">5. Data Visualisation (2)</a></li>
   <li><a href="#data-visualisation-3" id="toc-data-visualisation-3" class="nav-link" data-scroll-target="#data-visualisation-3">6. Data Visualisation (3)</a>
   <ul class="collapse">
-  <li><a href="#performing-the-necessary-and-additional-preprocessing-before-visualisation-2" id="toc-performing-the-necessary-and-additional-preprocessing-before-visualisation-2" class="nav-link" data-scroll-target="#performing-the-necessary-and-additional-preprocessing-before-visualisation-2">Performing the necessary and additional preprocessing before visualisation</a></li>
-  <li><a href="#data-visualisation" id="toc-data-visualisation" class="nav-link" data-scroll-target="#data-visualisation">6.1. Data Visualisation</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul></li>
   </ul>
@@ -242,7 +240,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">April 27, 2024</p>
+      <p class="date-modified">April 28, 2024</p>
     </div>
   </div>
     
@@ -942,7 +940,7 @@ Note
 <ul>
 <li><strong><em>What this means is that:</em></strong> The spread or variability of the <code>PSF</code> is the least for Executive Condominium, followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. In other words, the <em>prices for these property types tend to cluster more closely around the median, as indicated by their smaller Interquartile Ranges (IQRs)</em>.On the other hand, Detached Houses have the largest IQR, indicating that the <em>prices for Detached Houses are more spread out across a wider range.</em> This means that there can be <em>significant variability in prices for Detached Houses</em>, with some properties priced much higher or lower than the median.</li>
 </ul></li>
-<li><strong>Finding2:</strong> The <span style="color:red;">Median </span> is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median <code>PSF</code>. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median <code>Transacted Prices</code>despite having higher <code>PSF</code>.
+<li><strong>Finding2:</strong> The <span style="color:red;">Median</span> is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median <code>PSF</code>. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median <code>Transacted Prices</code>despite having higher <code>PSF</code>.
 <ul>
 <li><strong><em>What this means is that:</em></strong> Comparing PSF between dissimilar property types, such as a condo and a landed property, may not provide an accurate sense of value and affordability. When comparing properties for value, PSF is best used between two similar property type or better, within the same project or block.(Chong, 2020)</li>
 </ul></li>
@@ -1146,7 +1144,10 @@ Note
 <section id="data-visualisation-3" class="level1">
 <h1>6. Data Visualisation (3)</h1>
 <p>In this section, we want to figure out which property type does the majority of the buyers convert from and to which property type too. This can be achieved by analyzing the <code>Purchase Address Indicator</code></p>
-<p>::: panel-tabset ## 6.1. Data Prep</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">6.1. Data Prep</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">6.2. Data Visualisation</a></li></ul>
+<div class="tab-content">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
 <section id="performing-the-necessary-and-additional-preprocessing-before-visualisation-2" class="level3">
 <h3 class="anchored" data-anchor-id="performing-the-necessary-and-additional-preprocessing-before-visualisation-2">Performing the necessary and additional preprocessing before visualisation</h3>
 <div class="cell">
@@ -1161,8 +1162,8 @@ Note
 </details>
 </div>
 </section>
-<section id="data-visualisation" class="level2">
-<h2 class="anchored" data-anchor-id="data-visualisation">6.1. Data Visualisation</h2>
+</div>
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
 <div class="cell">
 <details>
 <summary>Show the code</summary>
@@ -1181,10 +1182,13 @@ Note
 <span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),  <span class="co"># Remove major gridlines</span></span>
 <span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),  <span class="co"># Remove minor gridlines</span></span>
 <span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.spacing =</span> <span class="fu">unit</span>(<span class="fl">0.01</span>, <span class="st">"lines"</span>)</span>
-<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the stacked bar chart</span></span>
-<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(stacked_bar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Distribution of Converters across Property Types"</span>,</span>
+<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a>                  <span class="at">subtitle =</span> <span class="st">"House buyers are mostly past private property owners with the exception for executive condos."</span>)</span>
+<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the stacked bar chart</span></span>
+<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(stacked_bar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <p><img src="Take-Home_Ex01_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
@@ -1193,9 +1197,11 @@ Note
 <p>From our findings:</p>
 <ul>
 <li><p>Most of the HDB converters purchase Apartment, Condos and Executive Condos. Few purchased Detached , semi-Detached and Terrace Houses</p></li>
-<li><p>Also, most of the house buyers are past private property owners with the exception for executive condos.</p></li>
+<li><p>Also, most of the house buyers are mostly past private property owners with the exception for executive condos.</p></li>
 </ul>
-</section>
+</div>
+</div>
+</div>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
 <ul>

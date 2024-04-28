@@ -564,7 +564,9 @@ print(allplots_with_title)
 
 In this section, we want to figure out which property type does the majority of the buyers convert from and to which property type too. This can be achieved by analyzing the `Purchase Address Indicator`
 
-::: panel-tabset \## 6.1. Data Prep
+::: panel-tabset
+
+## 6.1. Data Prep
 
 ### Performing the necessary and additional preprocessing before visualisation
 
@@ -580,7 +582,7 @@ purchaseindicator_allsales <- combined_data %>%
 
 ```
 
-## 6.1. Data Visualisation
+## 6.2. Data Visualisation
 
 ```{r}
 #| code-fold: true
@@ -600,7 +602,10 @@ stacked_bar <- ggplot(purchaseindicator_allsales, aes(x = `Property Type`, y = C
     panel.grid.major = element_blank(),  # Remove major gridlines
     panel.grid.minor = element_blank(),  # Remove minor gridlines
     panel.spacing = unit(0.01, "lines")
-  )
+  ) +
+  
+  plot_annotation(title = "Distribution of Converters across Property Types",
+                  subtitle = "House buyers are mostly past private property owners with the exception for executive condos.")
 
 # Print the stacked bar chart
 print(stacked_bar)
@@ -611,7 +616,9 @@ From our findings:
 
 -   Most of the HDB converters purchase Apartment, Condos and Executive Condos. Few purchased Detached , semi-Detached and Terrace Houses
 
--   Also, most of the house buyers are past private property owners with the exception for executive condos.
+-   Also, most of the house buyers are mostly past private property owners with the exception for executive condos.
+
+:::
 
 ## References
 
