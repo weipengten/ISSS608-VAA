@@ -262,7 +262,7 @@ We first added some filters to the dataset required to provide an accurate analy
 -   `Number of Units` == 1 as we are only interested in individual sales
 -   `Tenure` of 99 Years as this is the most common lease type
 
-We named the resulting dataframe after applying the filters as *resale_data*  
+We named the resulting dataframe after applying the filters as *resale_data*
 
 ```{r}
 #| code-fold: true
@@ -285,11 +285,12 @@ resale_data <- combined_data %>%
   filter(`Number of Units` == 1)%>%
   filter(grepl("99 yrs", Tenure, ignore.case = TRUE))
 ```
+
 ## 4.2. Visualisation
 
 ### The following visualization highlights the differences shared across all Property Types in terms of:
 
--   Distribution of Unit Price ($ PSF) across Property Types in Chart I
+-   Distribution of Unit Price (\$ PSF) across Property Types in Chart I
 -   Distribution of Transacted Price across Property Types in Chart II
 
 ```{r}
@@ -364,12 +365,10 @@ final_plot
 
 Here are some findings w.r.t `PSF`and `Transaction Prices` across all the `Property Types`:
 
--   **Finding1:** Both the <span style="color:red;">Interquartile Range (IQR)</span> and density distribution is the narrowest for Executive Condominiums, closely followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. It is the widest for Detached Houses.
-    -  ***What this means is that:*** The spread or variability of the `PSF` is the least for Executive Condominium, followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. In other words, the *prices for these property types tend to cluster more closely around the median, as indicated by their smaller Interquartile Ranges (IQRs)*.On the other hand, Detached Houses have the largest IQR, indicating that the *prices for Detached Houses are more spread out across a wider range.* This means that there can be *significant variability in prices for Detached Houses*, with some properties priced much higher or lower than the median.
-    
--   **Finding2:** The <span style="color:red;">Median </span> is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median `PSF`. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median `Transacted Prices`despite having higher `PSF`.
-    -  ***What this means is that:***  Comparing PSF between dissimilar property types, such as a condo and a landed property, may not provide an accurate sense of value and affordability. When comparing properties for value, PSF is best used between two similar property type or better, within the same project or block.(Chong, 2020)
-    
+-   **Finding1:** Both the [Interquartile Range (IQR)]{style="color:red;"} and density distribution is the narrowest for Executive Condominiums, closely followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. It is the widest for Detached Houses.
+    -   ***What this means is that:*** The spread or variability of the `PSF` is the least for Executive Condominium, followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. In other words, the *prices for these property types tend to cluster more closely around the median, as indicated by their smaller Interquartile Ranges (IQRs)*.On the other hand, Detached Houses have the largest IQR, indicating that the *prices for Detached Houses are more spread out across a wider range.* This means that there can be *significant variability in prices for Detached Houses*, with some properties priced much higher or lower than the median.
+-   **Finding2:** The [Median ]{style="color:red;"} is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median `PSF`. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median `Transacted Prices`despite having higher `PSF`.
+    -   ***What this means is that:*** Comparing PSF between dissimilar property types, such as a condo and a landed property, may not provide an accurate sense of value and affordability. When comparing properties for value, PSF is best used between two similar property type or better, within the same project or block.(Chong, 2020)
 :::
 
 # 5. Data Visualisation (2)
@@ -379,8 +378,7 @@ Here are some findings w.r.t `PSF`and `Transaction Prices` across all the `Prope
 
 ### Performing the necessary and additional preprocessing before visualisation
 
-We can further explore the trend of $PSF over different time intervals like months and quarters. 
-First, we need to generate extra date-related variables including `Quarter`, `Month`, and `Year`. Additionally, we've introduced a new variable called `Quarter Year`.
+We can further explore the trend of \$PSF over different time intervals like months and quarters. First, we need to generate extra date-related variables including `Quarter`, `Month`, and `Year`. Additionally, we've introduced a new variable called `Quarter Year`.
 
 ```{r}
 #| code-fold: true
@@ -396,8 +394,8 @@ resale_data <- resale_data %>%
                                      "Q2 2023", "Q3 2023", "Q4 2023", "Q1 2024"))
   )
 ```
-Second,  monthly average unit prices are calculated for different property types (Apartment, Condo, Executive Condos, and other types like Terrace, Semi-Detached, and Detached). Each calculation involves filtering the resale_data based on property type, converting the Sale Date column to Date type, grouping the data by quarter-year and year-month, and then summarizing the average unit price for each group. Finally, the results are stored in separate data frames (Apartment_monthly_avg, Condo_monthly_avg, ExecCondo_monthly_avg, and Others_monthly_avg).
 
+Second, monthly average unit prices are calculated for different property types (Apartment, Condo, Executive Condos, and other types like Terrace, Semi-Detached, and Detached). Each calculation involves filtering the resale_data based on property type, converting the Sale Date column to Date type, grouping the data by quarter-year and year-month, and then summarizing the average unit price for each group. Finally, the results are stored in separate data frames (Apartment_monthly_avg, Condo_monthly_avg, ExecCondo_monthly_avg, and Others_monthly_avg).
 
 ```{r}
 #| code-fold: true
@@ -432,7 +430,9 @@ Others_monthly_avg <- resale_data %>%
   summarise(Count = n())
 
 ```
+
 ## 5.2. Visualisation
+
 Finally, we create column and line charts to visualize the trends in the property sales over time for different property types. It starts by plotting separate charts for apartments, condos, executive condos, and other property types. Each plot represents the average unit price per month, with columns indicating different quarter-years.
 
 The code then combines all the individual plots into one comprehensive visualization using the *plot_grid()* function.
@@ -560,14 +560,11 @@ print(allplots_with_title)
 -   
 :::
 
-
-
 # 6. Data Visualisation (3)
 
 In this section, we want to figure out which property type does the majority of the buyers convert from and to which property type too. This can be achieved by analyzing the `Purchase Address Indicator`
 
-::: panel-tabset
-## 6.1. Data Prep
+::: panel-tabset \## 6.1. Data Prep
 
 ### Performing the necessary and additional preprocessing before visualisation
 
@@ -614,10 +611,8 @@ From our findings:
 
 -   Most of the HDB converters purchase Apartment, Condos and Executive Condos. Few purchased Detached , semi-Detached and Terrace Houses
 
--  Also, most of the house buyers are past private property owners with the exception for executive condos.
+-   Also, most of the house buyers are past private property owners with the exception for executive condos.
 
-   
-## References    
+## References
 
 -   [Why Does A Condo Have A Higher Price Per Square Foot Than A bungalow?](https://ronchongproperty.sg/why-does-a-condo-have-a-higher-price-per-square-foot-than-a-bungalow/)
-    
