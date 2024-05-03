@@ -83,6 +83,7 @@ Notice that two steps are involved. First, an interactive version of ggplot2 geo
 
 By hovering the mouse pointer on an data point of interest, the student’s ID will be displayed.
 
+
 ```{r echo=FALSE, eval=TRUE}
 p <- ggplot(data=exam_data, 
        aes(x = MATHS)) +
@@ -99,6 +100,8 @@ girafe(
   height_svg = 6*0.618
 )
 ```
+
+
 
 ### **3.5.1 Displaying multiple information on tooltip**
 
@@ -125,6 +128,7 @@ girafe(
 )
 ```
 
+
 The first three lines of codes in the code chunk create a new field called *tooltip*. At the same time, it populates text in ID and CLASS fields into the newly created field. Next, this newly created field is used as tooltip field as shown in the code of line 7.
 
 By hovering the mouse pointer on an data point of interest, the student’s ID and Class will be displayed.
@@ -147,6 +151,7 @@ girafe(
   height_svg = 8*0.618
 )
 ```
+
 
 ### **3.6.1 Customising Tooltip style**
 
@@ -174,6 +179,7 @@ girafe(
 Notice that the background colour of the tooltip is black and the font colour is white and bold.
 
 
+```{r echo=FALSE}
 tooltip_css <- "background-color:white;
 font-style:bold; color:black;"
 
@@ -228,8 +234,7 @@ girafe(ggobj = gg_point,
        width_svg = 8,
        height_svg = 8*0.618)
 ```
-
-Code chunk on the left shows an advanced way to customise tooltip. In this example, a function is used to compute 90% confident interval of the mean. The derived statistics are then displayed in the tooltip.
+Code chunk on the left shows an advanced way to customise tooltip.  In this example, a function is used to compute 90% confident interval of the mean.  The derived statistics are then displayed in the tooltip.  
 
 ```{r echo=FALSE}
 tooltip <- function(y, ymax, accuracy = .01) {
@@ -255,6 +260,7 @@ girafe(ggobj = p,
        width_svg = 8,
        height_svg = 8*0.618)
 ```
+
 
 ### **3.6.3 Hover effect with *data_id* aesthetic**
 
@@ -295,7 +301,6 @@ girafe(
   height_svg = 6*0.618                      
 )                                        
 ```
-
 Note that the default value of the hover css is *hover_css = “fill:orange;”*.
 
 ### **3.6.4 Styling hover effect**
@@ -324,6 +329,7 @@ girafe(
 ```
 
 Interactivity: Elements associated with a *data_id* (i.e CLASS) will be highlighted upon mouse over.
+
 
 ```{r echo=FALSE, eval=TRUE}
 p <- ggplot(data=exam_data, 
@@ -376,6 +382,7 @@ girafe(
 
 Interactivity: Elements associated with a *data_id* (i.e CLASS) will be highlighted upon mouse over. At the same time, the tooltip will show the CLASS.
 
+
 ```{r echo=FALSE, eval=TRUE}
 p <- ggplot(data=exam_data, 
        aes(x = MATHS)) +
@@ -397,6 +404,7 @@ girafe(
   )
 )                                        
 ```
+
 
 ### **3.6.6 Click effect with onclick**
 
@@ -424,7 +432,9 @@ girafe(
   height_svg = 6*0.618)                                        
 ```
 
+
 Interactivity: Web document link with a data object will be displayed on the web browser upon mouse click.
+
 
 ```{r echo=FALSE, eval=TRUE}
 exam_data$onclick <- sprintf("window.open(\"%s%s\")",
@@ -444,6 +454,7 @@ girafe(
   width_svg = 6,                         
   height_svg = 6*0.618)
 ```
+
 
 :::
 
@@ -487,6 +498,8 @@ girafe(code = print(p1 / p2),
          )
        )                                        
 ```
+
+
 
 Notice that when a data point of one of the dotplot is selected, the corresponding data point ID on the second data visualisation will be highlighted too.
 
@@ -561,6 +574,8 @@ plot_ly(data = exam_data,
              y = ~ENGLISH)
 ```
 
+
+
 ### **3.7.2 Working with visual variable: plot_ly() method**
 
 In the code chunk below, *color* argument is mapped to a qualitative visual variable (i.e. RACE).
@@ -574,7 +589,7 @@ plot_ly(data = exam_data,
 
 Interactive:
 
--   Click on the colour symbol at the legend.
+- Click on the colour symbol at the legend.
 
 ```{r echo=FALSE, fig.height=6}
 plot_ly(data = exam_data, 
@@ -583,7 +598,9 @@ plot_ly(data = exam_data,
         color = ~RACE)
 ```
 
+
 ### Creating an interactive scatter plot: ggplotly() method
+
 
 The code chunk below plots an interactive scatter plot by using *ggplotly()*.
 
@@ -598,7 +615,7 @@ ggplotly(p) #<<
 
 ```
 
-Notice that the only extra line you need to include in the code chunk is *ggplotly()*.
+Notice that the only extra line you need to include in the code chunk is *ggplotly()*. 
 
 ```{r, echo=FALSE,  eval=TRUE}
 p <- ggplot(data=exam_data, 
@@ -611,6 +628,7 @@ ggplotly(p)
 
 ```
 
+
 ### **3.7.4 Coordinated Multiple Views with plotly**
 
 The creation of a coordinated linked plot by using plotly involves three steps:
@@ -620,6 +638,7 @@ The creation of a coordinated linked plot by using plotly involves three steps:
 -   two scatterplots will be created by using ggplot2 functions.
 
 -   lastly, [*subplot()*](https://plotly.com/r/subplots/) of **plotly** package is used to place them next to each other side-by-side.
+
 
 ```{r echo=TRUE, eval=FALSE}
 d <- highlight_key(exam_data)  #<<
@@ -640,7 +659,7 @@ subplot(ggplotly(p1),
         ggplotly(p2))
 ```
 
-Click on a data point of one of the scatterplot and see how the corresponding point on the other scatterplot is selected.
+Click on a data point of one of the scatterplot and see how the corresponding point on the other scatterplot is selected. 
 
 ```{r echo=FALSE, eval=TRUE, fig.height=4}
 d <- highlight_key(exam_data)
@@ -677,7 +696,7 @@ Thing to learn from the code chunk:
 
 -   Data objects in R can be rendered as HTML tables using the JavaScript library ‘DataTables’ (typically via R Markdown or Shiny).
 
-```{r echo=FALSE, eval=FALSE}
+```{r echo=FALSE, eval=FALSE}   
 DT::datatable(exam_data, class= "compact")
 ```
 
@@ -714,6 +733,7 @@ crosstalk::bscols(gg,
                   DT::datatable(d), 
                   widths = 5)        
 ```
+
 
 ## **3.9 Reference**
 
