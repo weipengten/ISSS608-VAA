@@ -41,8 +41,10 @@ For the purpose of this exercise, the following R packages will be used, they ar
 -   ggdist for visualising distribution and uncertainty.
 
 ```{r}
-# devtools::install_github("wilkelab/ungeviz")
+devtools::install_github("wilkelab/ungeviz")
+```
 
+```{r}
 pacman::p_load(ungeviz, plotly, crosstalk,
                DT, ggdist, ggridges,
                colorspace, gganimate, tidyverse)
