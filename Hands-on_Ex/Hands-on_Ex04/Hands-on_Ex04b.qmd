@@ -173,7 +173,6 @@ ggplot(my_sum) +
 
 In this section, you will learn how to plot interactive error bars for the 99% confidence interval of mean maths score by race as shown in the figure below.
 
-
 ## Visualising Uncertainty: **ggdist** package
 
 -   [**ggdist**](https://mjskay.github.io/ggdist/index.html) is an R package that provides a flexible set of ggplot2 geoms and stats designed especially for visualising distributions and uncertainty.
@@ -202,6 +201,7 @@ exam %>%
 
 This function comes with many arguments, students are advised to read the syntax reference for more detail.
 :::
+
 For example, in the code chunk below the following arguments are used:
 
 -   width = 0.95

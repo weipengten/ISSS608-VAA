@@ -172,15 +172,13 @@ In this section, you will learn how to visualise model diagnostic and model para
 
 -   Toyota Corolla case study will be used. The purpose of study is to build a model to discover factors affecting prices of used-cars by taking into consideration a set of explanatory variables.
 
-## ![](images/clipboard-2867941505.png){width="541"}
+![](images/clipboard-1871466679.png){width="471"}
 
 ## Getting Started
 
 ## Installing and loading the required libraries
 
 ::: callout-note
-### Do-It-Yourself
-
 ```{r}
 pacman::p_load(readxl, performance, parameters, see)
 ```
