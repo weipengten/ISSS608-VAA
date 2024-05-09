@@ -285,6 +285,16 @@ resale_data <- combined_data %>%
   filter(`Number of Units` == 1)%>%
   filter(grepl("99 yrs", Tenure, ignore.case = TRUE))
 ```
+We save our processed data into .rds data format files using the `write_rds()` of **readr** package. The output file is saved in *rds* sub-folder. We do this to reduce the loading time and more importantly, we can avoid uploading the large raw files onto GitHub.
+
+```{r}
+write_rds(combined_data, "data/rds/combined_data.rds")
+combined_data <- read_rds("data/rds/combined_data.rds")
+
+write_rds(resale_data, "data/rds/resale_data.rds")
+resale_data <- read_rds("data/rds/resale_data.rds")
+```
+
 
 ## 4.2. Visualisation
 
@@ -367,7 +377,7 @@ Here are some findings w.r.t `PSF`and `Transaction Prices` across all the `Prope
 
 -   **Finding1:** Both the [Interquartile Range (IQR)]{style="color:red;"} and density distribution is the narrowest for Executive Condominiums, closely followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. It is the widest for Detached Houses.
     -   ***What this means is that:*** The spread or variability of the `PSF` is the least for Executive Condominium, followed by Apartments, Condominiums, Semi-Detached, and Terrace Houses. In other words, the *prices for these property types tend to cluster more closely around the median, as indicated by their smaller Interquartile Ranges (IQRs)*.On the other hand, Detached Houses have the largest IQR, indicating that the *prices for Detached Houses are more spread out across a wider range.* This means that there can be *significant variability in prices for Detached Houses*, with some properties priced much higher or lower than the median.
--   **Finding2:** The [Median ]{style="color:red;"} is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median `PSF`. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median `Transacted Prices`despite having higher `PSF`.
+-   **Finding2:** The [Median]{style="color:red;"} is the lowest for Detached Houses, followed by Semi-Detached Houses, Executive Condominiums, and Terrace Houses. Condominiums and Apartments have the highest median `PSF`. However, upon comparing this with the distribution plot in Chart II, it becomes apparent that Property Types such as Apartments, Condominiums, and Executive Condominiums also generally have lower median `Transacted Prices`despite having higher `PSF`.
     -   ***What this means is that:*** Comparing PSF between dissimilar property types, such as a condo and a landed property, may not provide an accurate sense of value and affordability. When comparing properties for value, PSF is best used between two similar property type or better, within the same project or block.(Chong, 2020)
 :::
 
@@ -383,7 +393,7 @@ We can further explore the trend of \$PSF over different time intervals like mon
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"     
-resale_data <- resale_data %>%
+resale_data2 <- resale_data %>%
   mutate(Year = year(`Sale Date`),
          Quarter = quarter(`Sale Date`),
          Month = month(`Sale Date`),
@@ -395,6 +405,14 @@ resale_data <- resale_data %>%
   )
 ```
 
+We save our processed data into .rds data format files using the `write_rds()` of **readr** package. The output file is saved in *rds* sub-folder. We do this to reduce the loading time and more importantly, we can avoid uploading the large raw files onto GitHub.
+
+```{r}
+write_rds(resale_data2, "data/rds/resale_data2.rds")
+resale_data2 <- read_rds("data/rds/resale_data2.rds")
+```
+
+
 Second, monthly average unit prices are calculated for different property types (Apartment, Condo, Executive Condos, and other types like Terrace, Semi-Detached, and Detached). Each calculation involves filtering the resale_data based on property type, converting the Sale Date column to Date type, grouping the data by quarter-year and year-month, and then summarizing the average unit price for each group. Finally, the results are stored in separate data frames (Apartment_monthly_avg, Condo_monthly_avg, ExecCondo_monthly_avg, and Others_monthly_avg).
 
 ```{r}
@@ -402,28 +420,28 @@ Second, monthly average unit prices are calculated for different property types 
 #| code-summary: "Show the code"     
 
 # Calculate monthly average unit price
-Apartment_monthly_avg <- resale_data %>%
+Apartment_monthly_avg <- resale_data2 %>%
   filter(`Property Type`=="Apartment") %>%
   mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
   group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
   summarise(Count = n())
 
 
-Condo_monthly_avg <- resale_data %>%
+Condo_monthly_avg <- resale_data2 %>%
   filter(`Property Type`=="Condo") %>%
   mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
   group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
   summarise(Count = n())
 
 
-ExecCondo_monthly_avg <- resale_data %>%
+ExecCondo_monthly_avg <- resale_data2 %>%
   filter(`Property Type`=="Executive Condos") %>%
   mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
   group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
   summarise(Count = n())
 
 
-Others_monthly_avg <- resale_data %>%
+Others_monthly_avg <- resale_data2 %>%
   filter(`Property Type` %in% c("Terrace", "Semi-Detached", "Detached")) %>%
   mutate(`Sale Date` = as.Date(`Sale Date`)) %>%
   group_by(Quarter_Year, Year_Month = format(`Sale Date`, "%Y-%m")) %>%
@@ -565,7 +583,6 @@ print(allplots_with_title)
 In this section, we want to figure out which property type does the majority of the buyers convert from and to which property type too. This can be achieved by analyzing the `Purchase Address Indicator`
 
 ::: panel-tabset
-
 ## 6.1. Data Prep
 
 ### Performing the necessary and additional preprocessing before visualisation
@@ -617,7 +634,6 @@ From our findings:
 -   Most of the HDB converters purchase Apartment, Condos and Executive Condos. Few purchased Detached , semi-Detached and Terrace Houses
 
 -   Also, most of the house buyers are mostly past private property owners with the exception for executive condos.
-
 :::
 
 ## References

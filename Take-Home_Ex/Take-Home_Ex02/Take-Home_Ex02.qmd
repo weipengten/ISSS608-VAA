@@ -153,6 +153,13 @@ filtered_data <- filtered_data %>%
 
 ```
 
+We save our processed data into .rds data format files using the `write_rds()` of **readr** package. The output file is saved in *rds* sub-folder. We do this to reduce the loading time and more importantly, we can avoid uploading the large raw files onto GitHub.
+
+```{r}
+write_rds(filtered_data, "data/rds/filtered_data.rds")
+filtered_data <- read_rds("data/rds/filtered_data.rds")
+```
+
 #### Base Data Creation:
 
 The code creates a base dataset (`base_data`) by grouping the filtered data (`filtered_data`) by month of sale, unit price bin, and property type. It calculates the count of transactions (`Count`) and assigns negative values to transactions related to apartments (`Trans_Vol`) to prepare for a pyramid chart.
