@@ -1,0 +1,75 @@
+---
+title: "In-class Exercise 05"
+author: "Ten Wei Peng"
+date: "May 11, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+## Getting Started
+
+## Installing and loading the required libraries
+
+```{r}
+pacman::p_load(readtext, quanteda, tidytext,  tidyverse)
+
+```
+
+### Data import and preparation (Text)
+
+For the purpose of this exercise, data from MC1 of Vast CGallenge 2024 will be used.
+
+```{r}
+text_data <- readtext(paste0("data/articles", "/*"))
+```
+
+```{r}
+usenet_words <- text_data %>%
+  unnest_tokens(word,text) %>%
+  filter(str_detect(word, "[a-z']$"),
+         !word %in% stop_words$word)
+```
+
+
+```{r}
+usenet_words %>%
+  count(word, sort = TRUE)
+
+```
+
+
+```{r}
+text_data_splitted <- text_data %>%
+  separate_wider_delim("doc_id",
+                       delim = "__0__",
+                       names = c("X","Y"),
+                       too_few = "align_end")
+
+```
+
+### Data import and preparation (JSON)
+
+```{r}
+pacman::p_load(jsonlite , tidyverse)
+```
+
+```{r}
+mc1_data <- fromJSON("data/mc1.json")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
