@@ -1,0 +1,253 @@
+---
+title: "Take Home Exercise 3: WORK IN PROGRESS"
+author: "Ten Wei Peng"
+date: "May 13, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+# Overview
+
+
+# 1.Data Preparation
+
+## 1.1 Loading R Packages
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+pacman::p_load(readtext, quanteda, tidytext,  tidyverse)
+```
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+text_data <- readtext(paste0("data/articles", "/*"))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+usenet_words <- text_data %>%
+  unnest_tokens(word,text) %>%
+  filter(str_detect(word, "[a-z']$"),
+         !word %in% stop_words$word)
+```
+
+
+
+
+## 1.2. Loading the Data
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+pacman::p_load(jsonlite, igraph, tidygraph, ggraph, 
+               visNetwork, lubridate, clock,
+               tidyverse, graphlayouts )
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+mc1_data <- fromJSON("data/mc1.json")
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+mc1_links <- as_tibble(mc1_data$links) %>%
+  distinct() %>%
+  mutate(source = as.character(source),
+         target = as.character(target),
+         type = as.character(type)) %>%
+  group_by(source, target, type) %>%
+  summarise(weights = n()) %>%
+  filter(source != target) %>%
+  ungroup()
+
+# Convert nodes to tibble, modify variable types, and select required columns
+mc1_nodes <- as_tibble(mc1_data$nodes) %>%
+  mutate(id = as.character(id), 
+         type = as.character(type), 
+         country = as.character(country)) %>%
+  select(id, country, type )
+
+```
+
+## 1.3. Data Cleaning
+
+::: panel-tabset
+### Links
+```{r}
+# Check for columns with missing values
+colSums(is.na(mc1_links))
+```
+
+
+```{r}
+mc1_links[duplicated(mc1_links),]
+```
+
+
+
+
+```{r}
+glimpse(mc1_links)
+```
+
+
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
+unique_source <- unique(mc1_links$source)
+print(unique_source)
+```
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
+unique_target <- unique(mc1_links$target)
+print(unique_target)
+```
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
+unique_type <- unique(mc1_links$type)
+print(unique_type)
+```
+
+
+
+
+### Nodes
+```{r}
+# Check for columns with missing values
+colSums(is.na(mc1_nodes))
+```
+There are 4 missing values from the **country** column.
+
+
+```{r}
+mc1_nodes[duplicated(mc1_nodes),]
+```
+
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
+unique_country <- unique(mc1_nodes$country)
+print(unique_country)
+```
+
+
+
+
+
+
+
+
+
+:::
+
+
+### Step 2: Extract Data Relevant to the Comparison
+#### Identify nodes and edges extracted by each algorithm
+
+```{r}
+# shadgpt_nodes <- mc1_links$links %>%
+#   filter(_algorithm == "ShadGPT")
+```
+```{r}
+# bassline_nodes <- mc1_links$links 
+# filter(_algorithm == "BassLine")
+
+
+```
+
+
+```{r}
+# Extract articles related to these nodes and edges
+# shadgpt_articles <- usenet_words[shadgpt_nodes$_raw_source]
+# bassline_articles <- usenet_words[bassline_nodes$_raw_source]
+
+```
+
+
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+GAStech_graph <- tbl_graph(nodes = mc1_nodes,
+                           edges = mc1_links, 
+                           directed = TRUE)
+
+```
+
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+GAStech_graph
+```
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes()) +
+  geom_node_point(aes(colour = country, 
+                      size = 1))
+
+g + theme_graph()
+```
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+set_graph_style() 
+
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes(width=weights), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = country), 
+                  size = 2)
+  
+g + facet_edges(~type) +
+  th_foreground(foreground = "grey80",  
+                border = TRUE) +
+  theme(legend.position = 'bottom')
+
+```
+
+
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+mc3_data <- fromJSON("data/mc3.json")
+```
+
+
+
+
