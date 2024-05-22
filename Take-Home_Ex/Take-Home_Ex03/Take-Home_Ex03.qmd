@@ -87,6 +87,8 @@ colSums(is.na(mc2_links))
 ```
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 summary(mc2_links_prep)
 
 ```
@@ -95,11 +97,15 @@ summary(mc2_links_prep)
 
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 mc2_links[duplicated(mc2_links),]
 ```
 
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 glimpse(mc2_links)
 ```
 
@@ -137,12 +143,16 @@ count_unique_categories(mc2_links, 'type')
 ### Nodes
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 glimpse(mc2_nodes)
 
 ```
 
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Check for columns with missing values
 colSums(is.na(mc2_nodes))
 ```
@@ -150,6 +160,8 @@ colSums(is.na(mc2_nodes))
 
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 mc2_nodes[duplicated(mc2_nodes),]
 ```
 
@@ -251,6 +263,8 @@ mc2_graph_with_edges %>%
 
 ### 2.4. Visualize the Graph
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Aggregate edges data
 mc2_edges_aggregated <- mc2_links_filtered %>%
   left_join(mc2_nodes_filtered, by = c("source" = "id")) %>%
@@ -273,6 +287,8 @@ mc2_nodes_filtered <- mc2_nodes_filtered %>%
 ```
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 
 # Visualize the resulting graph
 visNetwork(mc2_nodes_filtered, mc2_edges_aggregated) %>%
@@ -289,16 +305,15 @@ visNetwork(mc2_nodes_filtered, mc2_edges_aggregated) %>%
 
 ## 3. Geographical Information
 ```{r}
-
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Read the GeoJSON file
 geojson_file <- "data/Oceanus Information/Oceanus Geography.geojson"
 geo_data <- st_read(geojson_file) %>%
-  st_transform(crs = 3571)
-
-# Display the structure of the data
-print(geo_data)
-
+  st_transform(crs = 3571)%>%
+  rename(id = Name)
 ```
+
 ```{r}
 # Separate MULTIPOLYGON and POINT geometries
 multipolygon_data <- geo_data %>% filter(st_geometry_type(geo_data) == "MULTIPOLYGON")
@@ -306,36 +321,17 @@ point_data <- geo_data %>% filter(st_geometry_type(geo_data) == "POINT")
 
 ```
 
-
-
 ```{r}
-tmap_mode("plot")
-
-# Plot MULTIPOLYGON and POINT data on the same map
-tm_shape(multipolygon_data) +
-  tm_polygons(alpha = 0.5, col = "blue") +
-  tm_borders(lwd = 1, alpha = 0.5) +
-  tm_layout(frame = FALSE) +
-  tmap_style("gray") +
-tm_shape(point_data) +
-  tm_dots(col = "purple", size = 0.1) +
-  tm_layout(legend.position = c("left", "bottom"))
-
-```
-
-
-```{r}
-# Rename the common column in geo_data to "id" to match mc2_nodes_filtered
-geo_data <- geo_data %>%
-  rename(id = Name)  # Adjust "name" to the actual column name that matches
-
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Merge geographical information into network nodes
 mc2_nodes_geo <- mc2_nodes_filtered %>%
   left_join(st_drop_geometry(geo_data), by = "id")
 ```
 
 ```{r}
-
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Visualize the geographical data with tmap
 tmap_mode("plot")
 
@@ -350,25 +346,3 @@ tm_shape(geo_data) +
   tm_layout(legend.position = c("left", "bottom"))
 ```
 
-
-
-
-```{r}
-# Aggregating port exits by time intervals (e.g., days)
-exit_counts <- table(cut(mc2_links_prep$time, breaks = "day"))
-
-# Convert to data frame
-exit_counts_df <- as.data.frame(exit_counts)
-exit_counts_df$Date <- as.Date(levels(exit_counts_df$Var1)[exit_counts_df$Var1])
-
-# Plotting seasonal trends
-ggplot(exit_counts_df, aes(x = Date, y = Freq)) +
-  geom_line() +
-  labs(x = "Date", y = "Port Exit Count", title = "Seasonal Trends in Port Exit Records") +
-  theme_minimal()
-
-
-
-```
-
-```
