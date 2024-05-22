@@ -69,7 +69,6 @@ mc3_nodes <- as_tibble(mc3_data$nodes) %>%
 :::
 
 ```{r}
-```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
 id1 <- mc3_edges %>%
@@ -88,7 +87,6 @@ mc3_nodes1 <- bind_rows(id1, id2) %>%
 
 
 ```{r}
-```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
 mc3_graph <- tbl_graph(nodes = mc3_nodes1,
@@ -103,7 +101,6 @@ mc3_graph <- tbl_graph(nodes = mc3_nodes1,
 
 
 
-```{r}
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -125,7 +122,8 @@ ggraph(layout = "fr") +
 
 
 ```{r}
-
+#| code-fold: true
+#| code-summary: "Show the code" 
 mc3_graph_directed <- tbl_graph(nodes = mc3_nodes1,
                        edges = mc3_edges,
                        directed = TRUE) %>%

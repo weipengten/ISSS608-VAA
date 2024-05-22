@@ -20,63 +20,60 @@ execute:
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
-pacman::p_load(readtext, quanteda, tidytext,  tidyverse)
+pacman::p_load(jsonlite, igraph, tidygraph, ggraph, 
+               visNetwork, lubridate, clock,
+               tidyverse, graphlayouts, sf , sp, sfdep,tmap, viridis, reshape2, stplanr, httr, lwgeom, DT, units)
 ```
-
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-text_data <- readtext(paste0("data/articles", "/*"))
-```
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-usenet_words <- text_data %>%
-  unnest_tokens(word,text) %>%
-  filter(str_detect(word, "[a-z']$"),
-         !word %in% stop_words$word)
-```
-
-
-
 
 ## 1.2. Loading the Data
 
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
-pacman::p_load(jsonlite, igraph, tidygraph, ggraph, 
-               visNetwork, lubridate, clock,
-               tidyverse, graphlayouts )
+mc2_data <- fromJSON("data/mc2_edited.json")
 ```
-
+  
 ```{r}
 #| code-fold: true
-#| code-summary: "Show the code" 
-mc1_data <- fromJSON("data/mc1.json")
-```
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-mc1_links <- as_tibble(mc1_data$links) %>%
+#| code-summary: "Show the code"   
+mc2_links_prep <- as_tibble(mc2_data$links) %>%
   distinct() %>%
   mutate(source = as.character(source),
          target = as.character(target),
-         type = as.character(type)) %>%
-  group_by(source, target, type) %>%
-  summarise(weights = n()) %>%
+         type = as.character(type),
+         dwell = as.character(dwell),
+         date = as.Date(as.character(date), format = "%Y-%m-%d"),
+         raw_source = as.character(raw_source),
+         time = as.POSIXct(time, format = "%Y-%m-%dT%H:%M:%OS")) %>%
+  mutate(day_of_week = wday(time, label = TRUE))  
+
+mc2_links <- mc2_links_prep%>%
+  group_by(source, target, type,day_of_week) %>%
+  summarise(weights = n(), .groups = 'drop') %>%
   filter(source != target) %>%
   ungroup()
 
 # Convert nodes to tibble, modify variable types, and select required columns
-mc1_nodes <- as_tibble(mc1_data$nodes) %>%
+mc2_nodes <- as_tibble(mc2_data$nodes) %>%
   mutate(id = as.character(id), 
-         type = as.character(type), 
-         country = as.character(country)) %>%
-  select(id, country, type )
+         type = as.character(type),
+         type = case_when(
+    type %in% c("Entity.Vessel.CargoVessel", "Entity.Vessel.Ferry.Cargo", "Entity.Vessel.FishingVessel","Entity.Vessel", "Entity.Vessel.Other") ~ "Entity.Vessel",
+    TRUE ~ type
+  ),
+         tonnage = as.numeric(as.character(tonnage)),
+         length_overall = as.numeric(as.character(length_overall)), 
+         Activities = as.character(Activities), 
+         fish_species_present = as.character(fish_species_present), 
+         kind = as.character(kind), 
+         flag_country = as.character(flag_country),
+         company = as.character(company),
+         raw_source = as.character(raw_source),
+         namee = as.character(name), 
+         last_edited_by = as.POSIXct(strptime(as.character(last_edited_by), format = "%Y-%m-%dT%H:%M:%OS")),
+         last_edited_date = as.POSIXct(strptime(as.character(last_edited_date), format = "%Y-%m-%dT%H:%M:%OS")),
+         date_added = as.POSIXct(strptime(as.character(date_added), format = "%Y-%m-%dT%H:%M:%OS"))) %>%
+  select(id, type, namee, company, flag_country, Activities, tonnage, length_overall, raw_source, fish_species_present, kind, last_edited_by, last_edited_date, date_added)
 
 ```
 
@@ -86,60 +83,74 @@ mc1_nodes <- as_tibble(mc1_data$nodes) %>%
 ### Links
 ```{r}
 # Check for columns with missing values
-colSums(is.na(mc1_links))
+colSums(is.na(mc2_links))
 ```
-
 
 ```{r}
-mc1_links[duplicated(mc1_links),]
+summary(mc2_links_prep)
+
 ```
 
-
-
-
-```{r}
-glimpse(mc1_links)
-```
 
 
 
 ```{r}
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show the code" 
-unique_source <- unique(mc1_links$source)
-print(unique_source)
+mc2_links[duplicated(mc2_links),]
 ```
+
+
+```{r}
+glimpse(mc2_links)
+```
+
+
 
 ```{r}
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show the code" 
-unique_target <- unique(mc1_links$target)
-print(unique_target)
-```
-
-```{r}
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show the code" 
-unique_type <- unique(mc1_links$type)
+unique_type <- unique(mc2_links$type)
 print(unique_type)
 ```
 
+**Define a function to count and print unique categories for a given column.**
 
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+count_unique_categories <- function(data, column_name) {
+  cat("**", column_name, "**\n", sep = "")
+  category_counts <- table(data[[column_name]])
+  sorted_counts <- sort(category_counts, decreasing = TRUE)
+  print(sorted_counts)
+}
+```
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
+count_unique_categories(mc2_links, 'type') 
+```
 
 
 ### Nodes
+
+```{r}
+glimpse(mc2_nodes)
+
+```
+
+
 ```{r}
 # Check for columns with missing values
-colSums(is.na(mc1_nodes))
+colSums(is.na(mc2_nodes))
 ```
-There are 4 missing values from the **country** column.
+
 
 
 ```{r}
-mc1_nodes[duplicated(mc1_nodes),]
+mc2_nodes[duplicated(mc2_nodes),]
 ```
 
 
@@ -147,107 +158,217 @@ mc1_nodes[duplicated(mc1_nodes),]
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show the code" 
-unique_country <- unique(mc1_nodes$country)
-print(unique_country)
+unique_type <- unique(mc2_nodes$type)
+print(unique_type)
 ```
 
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
+count_unique_categories(mc2_nodes, 'type') 
+count_unique_categories(mc2_nodes, 'flag_country') 
+count_unique_categories(mc2_nodes, 'company') 
+count_unique_categories(mc2_nodes, 'kind') 
 
-
-
-
-
-
+```
 
 
 :::
 
 
-### Step 2: Extract Data Relevant to the Comparison
-#### Identify nodes and edges extracted by each algorithm
+## 2. Task 1
 
-```{r}
-# shadgpt_nodes <- mc1_links$links %>%
-#   filter(_algorithm == "ShadGPT")
-```
-```{r}
-# bassline_nodes <- mc1_links$links 
-# filter(_algorithm == "BassLine")
-
-
-```
-
-
-```{r}
-# Extract articles related to these nodes and edges
-# shadgpt_articles <- usenet_words[shadgpt_nodes$_raw_source]
-# bassline_articles <- usenet_words[bassline_nodes$_raw_source]
-
-```
-
-
-
+### 2.1` Filter and Prepare Data
 
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
 
-GAStech_graph <- tbl_graph(nodes = mc1_nodes,
-                           edges = mc1_links, 
-                           directed = TRUE)
+# Filter and prepare nodes
+mc2_nodes_filtered <- mc2_nodes %>%
+  filter(type %in% c('Entity.Vessel','Entity.Location.Point',"Entity.Location.City")) 
+
+# Filter and prepare nodes
+mc2_links_filtered <- mc2_links %>%
+  filter(type %in% c('Event.TransportEvent.TransponderPing','Event.Transaction',"Event.HarborReport"))
+
+# Extract relevant node IDs
+filtered_node_ids <- mc2_nodes_filtered$id
+
+# Filter and prepare edges
+mc2_links_filtered <- mc2_links_filtered %>%
+  filter(source %in% filtered_node_ids & target %in% filtered_node_ids)
+
+# Ensure no missing nodes in the filtered links
+missing_nodes <- setdiff(unique(c(mc2_links_filtered$source, mc2_links_filtered$target)), mc2_nodes_filtered$id)
+if(length(missing_nodes) > 0) {
+  mc2_links_filtered <- mc2_links_filtered %>%
+    filter(!source %in% missing_nodes & !target %in% missing_nodes)
+}
+
+```
+### 2.2. Construct the Graph
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Create the graph with filtered nodes and edges
+mc2_graph <- tbl_graph(nodes = mc2_nodes_filtered, edges = mc2_links_filtered, directed = TRUE) %>%
+  mutate(betweenness_centrality = centrality_betweenness(),
+         closeness_centrality = centrality_closeness(),
+         degree_centrality = centrality_degree())
+```
+
+
+### 2.3. Filter out Isolated Edges
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Filter the graph to include only nodes with edges
+mc2_graph_with_edges <- mc2_graph %>%
+  filter(!node_is_isolated())
+
+# Visualization with filtered nodes
+mc2_graph_with_edges %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(alpha = 0.5), show.legend = FALSE) +
+  geom_node_point(aes(
+    size = degree_centrality,
+    color = type,
+    alpha = 0.3)) +
+  scale_size_continuous(range = c(1, 10)) +
+  scale_color_manual(values = c("Entity.Vessel" = "blue", 
+                                "Entity.Location.Point"= "red",
+                                "Entity.Location.City" = "lightblue"
+                                )) +
+  labs(title = "Associations between Vessels and Probable Cargos",
+       color = "Node Type",
+       size = "Degree Centrality")
+```
+
+
+### 2.4. Visualize the Graph
+```{r}
+# Aggregate edges data
+mc2_edges_aggregated <- mc2_links_filtered %>%
+  left_join(mc2_nodes_filtered, by = c("source" = "id")) %>%
+  rename(from = source) %>%
+  left_join(mc2_nodes_filtered, by = c("target" = "id")) %>%
+  rename(to = target) %>%
+  group_by(from, to) %>%
+  summarise(weight = sum(weights)) %>%
+  filter(from != to) %>%
+  filter(weight > 50) %>%
+  ungroup()
+
+connected_nodes <- unique(c(mc2_edges_aggregated$from, mc2_edges_aggregated$to))
+
+# Filter out isolated nodes
+mc2_nodes_filtered <- mc2_nodes_filtered %>%
+  filter(id %in% connected_nodes) %>%
+  rename(group = type) %>%
+  mutate(label = ifelse(group %in% c('Entity.Vessel','Entity.Location.Point', 'Entity.Location.City'), id, NA))
+```
+
+```{r}
+
+# Visualize the resulting graph
+visNetwork(mc2_nodes_filtered, mc2_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123) %>%
+  visOptions(highlightNearest = list(enabled = TRUE, degree = 1), 
+             nodesIdSelection = TRUE)
+
+
+```
+
+
+
+## 3. Geographical Information
+```{r}
+
+# Read the GeoJSON file
+geojson_file <- "data/Oceanus Information/Oceanus Geography.geojson"
+geo_data <- st_read(geojson_file) %>%
+  st_transform(crs = 3571)
+
+# Display the structure of the data
+print(geo_data)
+
+```
+```{r}
+# Separate MULTIPOLYGON and POINT geometries
+multipolygon_data <- geo_data %>% filter(st_geometry_type(geo_data) == "MULTIPOLYGON")
+point_data <- geo_data %>% filter(st_geometry_type(geo_data) == "POINT")
 
 ```
 
 
 
 ```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-GAStech_graph
+tmap_mode("plot")
+
+# Plot MULTIPOLYGON and POINT data on the same map
+tm_shape(multipolygon_data) +
+  tm_polygons(alpha = 0.5, col = "blue") +
+  tm_borders(lwd = 1, alpha = 0.5) +
+  tm_layout(frame = FALSE) +
+  tmap_style("gray") +
+tm_shape(point_data) +
+  tm_dots(col = "purple", size = 0.1) +
+  tm_layout(legend.position = c("left", "bottom"))
+
 ```
 
 
 ```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-g <- ggraph(GAStech_graph, 
-            layout = "nicely") + 
-  geom_edge_link(aes()) +
-  geom_node_point(aes(colour = country, 
-                      size = 1))
+# Rename the common column in geo_data to "id" to match mc2_nodes_filtered
+geo_data <- geo_data %>%
+  rename(id = Name)  # Adjust "name" to the actual column name that matches
 
-g + theme_graph()
+# Merge geographical information into network nodes
+mc2_nodes_geo <- mc2_nodes_filtered %>%
+  left_join(st_drop_geometry(geo_data), by = "id")
 ```
 
-
 ```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-set_graph_style() 
 
-g <- ggraph(GAStech_graph, 
-            layout = "nicely") + 
-  geom_edge_link(aes(width=weights), 
-                 alpha=0.2) +
-  scale_edge_width(range = c(0.1, 5)) +
-  geom_node_point(aes(colour = country), 
-                  size = 2)
-  
-g + facet_edges(~type) +
-  th_foreground(foreground = "grey80",  
-                border = TRUE) +
-  theme(legend.position = 'bottom')
+# Visualize the geographical data with tmap
+tmap_mode("plot")
 
+tm_shape(geo_data) +
+  tm_polygons(alpha = 0.5) +
+  tm_borders(lwd = 1, alpha = 0.5) +
+  tm_layout(frame = FALSE) +
+  tmap_style("gray") +
+  tm_shape(geo_data) +
+  tm_dots(col = "purple", size = 0.2) +
+  tm_text(text = "id", size = 0.6, col = "black") +  # Add labels to the locations
+  tm_layout(legend.position = c("left", "bottom"))
 ```
 
 
 
 
 ```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-mc3_data <- fromJSON("data/mc3.json")
+# Aggregating port exits by time intervals (e.g., days)
+exit_counts <- table(cut(mc2_links_prep$time, breaks = "day"))
+
+# Convert to data frame
+exit_counts_df <- as.data.frame(exit_counts)
+exit_counts_df$Date <- as.Date(levels(exit_counts_df$Var1)[exit_counts_df$Var1])
+
+# Plotting seasonal trends
+ggplot(exit_counts_df, aes(x = Date, y = Freq)) +
+  geom_line() +
+  labs(x = "Date", y = "Port Exit Count", title = "Seasonal Trends in Port Exit Records") +
+  theme_minimal()
+
+
+
 ```
 
-
-
-
+```
