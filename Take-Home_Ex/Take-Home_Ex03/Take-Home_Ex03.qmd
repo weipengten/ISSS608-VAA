@@ -22,7 +22,7 @@ execute:
 #| code-summary: "Show the code" 
 pacman::p_load(jsonlite, igraph, tidygraph, ggraph, 
                visNetwork, lubridate, clock,
-               tidyverse, graphlayouts, sf , sp, sfdep,tmap, viridis, reshape2, stplanr, httr, lwgeom, DT, units)
+               tidyverse, graphlayouts, sf , sp, sfdep,tmap, viridis, reshape2, stplanr, httr, lwgeom, DT, units, maps)
 ```
 
 ## 1.2. Loading the Data
@@ -42,38 +42,51 @@ mc2_links_prep <- as_tibble(mc2_data$links) %>%
          target = as.character(target),
          type = as.character(type),
          dwell = as.character(dwell),
-         date = as.Date(as.character(date), format = "%Y-%m-%d"),
          raw_source = as.character(raw_source),
-         time = as.POSIXct(time, format = "%Y-%m-%dT%H:%M:%OS")) %>%
-  mutate(day_of_week = wday(time, label = TRUE))  
+         time =  as.POSIXct(time, format="%Y-%m-%dT%H:%M:%OS", tz="UTC"),
+         date = as.Date(as.character(date), format = "%Y-%m-%d"),
+         ping_date = as.Date(as.POSIXct(time, format="%Y-%m-%dT%H:%M:%OS", tz="UTC"))) %>%
+  mutate(day_of_week = wday(time, label = TRUE))%>%
+  select(type, time, dwell, source, target, date, ping_date,raw_source, key, aphorism, holiday_greeting, wisdom, `saying of the sea`, day_of_week)
+  
+
+mc2_links_dow <- mc2_links_prep%>%
+  group_by(source, target, type,day_of_week) %>%
+  summarise(weights = n(), .groups = 'drop') %>%
+  filter(source != target) %>%
+  ungroup()
 
 mc2_links <- mc2_links_prep%>%
-  group_by(source, target, type,day_of_week) %>%
+  group_by(source, target, type) %>%
   summarise(weights = n(), .groups = 'drop') %>%
   filter(source != target) %>%
   ungroup()
 
 # Convert nodes to tibble, modify variable types, and select required columns
 mc2_nodes <- as_tibble(mc2_data$nodes) %>%
-  mutate(id = as.character(id), 
-         type = as.character(type),
-         type = case_when(
-    type %in% c("Entity.Vessel.CargoVessel", "Entity.Vessel.Ferry.Cargo", "Entity.Vessel.FishingVessel","Entity.Vessel", "Entity.Vessel.Other") ~ "Entity.Vessel",
-    TRUE ~ type
-  ),
-         tonnage = as.numeric(as.character(tonnage)),
-         length_overall = as.numeric(as.character(length_overall)), 
-         Activities = as.character(Activities), 
-         fish_species_present = as.character(fish_species_present), 
-         kind = as.character(kind), 
-         flag_country = as.character(flag_country),
-         company = as.character(company),
-         raw_source = as.character(raw_source),
-         namee = as.character(name), 
-         last_edited_by = as.POSIXct(strptime(as.character(last_edited_by), format = "%Y-%m-%dT%H:%M:%OS")),
-         last_edited_date = as.POSIXct(strptime(as.character(last_edited_date), format = "%Y-%m-%dT%H:%M:%OS")),
-         date_added = as.POSIXct(strptime(as.character(date_added), format = "%Y-%m-%dT%H:%M:%OS"))) %>%
-  select(id, type, namee, company, flag_country, Activities, tonnage, length_overall, raw_source, fish_species_present, kind, last_edited_by, last_edited_date, date_added)
+  mutate(
+    type_original = type,
+    id = as.character(id), 
+    type = as.character(type),
+    type = case_when(
+      type %in% c("Entity.Vessel.CargoVessel", "Entity.Vessel.Ferry.Cargo", "Entity.Vessel.FishingVessel", "Entity.Vessel", "Entity.Vessel.Other") ~ "Entity.Vessel",
+      TRUE ~ type
+    ),
+    tonnage = as.numeric(as.character(tonnage)),
+    length_overall = as.numeric(as.character(length_overall)), 
+    Activities = as.character(Activities), 
+    fish_species_present = as.character(fish_species_present), 
+    kind = as.character(kind), 
+    flag_country = as.character(flag_country),
+    company = as.character(company),
+    raw_source = as.character(raw_source),
+    namee = as.character(name), 
+    last_edited_by = as.POSIXct(strptime(as.character(last_edited_by), format = "%Y-%m-%dT%H:%M:%OS")),
+    last_edited_date = as.POSIXct(strptime(as.character(last_edited_date), format = "%Y-%m-%dT%H:%M:%OS")),
+    date_added = as.POSIXct(strptime(as.character(date_added), format = "%Y-%m-%dT%H:%M:%OS"))
+  ) %>%
+  select(id, type,type_original, namee, company, flag_country, Activities, tonnage, length_overall, raw_source, fish_species_present, kind)
+
 
 ```
 
@@ -184,126 +197,13 @@ count_unique_categories(mc2_nodes, 'company')
 count_unique_categories(mc2_nodes, 'kind') 
 
 ```
-
-
-:::
-
-
-## 2. Task 1
-
-### 2.1` Filter and Prepare Data
-
 ```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-
-# Filter and prepare nodes
-mc2_nodes_filtered <- mc2_nodes %>%
-  filter(type %in% c('Entity.Vessel','Entity.Location.Point',"Entity.Location.City")) 
-
-# Filter and prepare nodes
-mc2_links_filtered <- mc2_links %>%
-  filter(type %in% c('Event.TransportEvent.TransponderPing','Event.Transaction',"Event.HarborReport"))
-
-# Extract relevant node IDs
-filtered_node_ids <- mc2_nodes_filtered$id
-
-# Filter and prepare edges
-mc2_links_filtered <- mc2_links_filtered %>%
-  filter(source %in% filtered_node_ids & target %in% filtered_node_ids)
-
-# Ensure no missing nodes in the filtered links
-missing_nodes <- setdiff(unique(c(mc2_links_filtered$source, mc2_links_filtered$target)), mc2_nodes_filtered$id)
-if(length(missing_nodes) > 0) {
-  mc2_links_filtered <- mc2_links_filtered %>%
-    filter(!source %in% missing_nodes & !target %in% missing_nodes)
-}
-
-```
-### 2.2. Construct the Graph
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-# Create the graph with filtered nodes and edges
-mc2_graph <- tbl_graph(nodes = mc2_nodes_filtered, edges = mc2_links_filtered, directed = TRUE) %>%
-  mutate(betweenness_centrality = centrality_betweenness(),
-         closeness_centrality = centrality_closeness(),
-         degree_centrality = centrality_degree())
+count_unique_companies <- length(unique(mc2_nodes$company))
+count_unique_companies
 ```
 
 
-### 2.3. Filter out Isolated Edges
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-# Filter the graph to include only nodes with edges
-mc2_graph_with_edges <- mc2_graph %>%
-  filter(!node_is_isolated())
-
-# Visualization with filtered nodes
-mc2_graph_with_edges %>%
-  ggraph(layout = "fr") +
-  geom_edge_link(aes(alpha = 0.5), show.legend = FALSE) +
-  geom_node_point(aes(
-    size = degree_centrality,
-    color = type,
-    alpha = 0.3)) +
-  scale_size_continuous(range = c(1, 10)) +
-  scale_color_manual(values = c("Entity.Vessel" = "blue", 
-                                "Entity.Location.Point"= "red",
-                                "Entity.Location.City" = "lightblue"
-                                )) +
-  labs(title = "Associations between Vessels and Probable Cargos",
-       color = "Node Type",
-       size = "Degree Centrality")
-```
-
-
-### 2.4. Visualize the Graph
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-# Aggregate edges data
-mc2_edges_aggregated <- mc2_links_filtered %>%
-  left_join(mc2_nodes_filtered, by = c("source" = "id")) %>%
-  rename(from = source) %>%
-  left_join(mc2_nodes_filtered, by = c("target" = "id")) %>%
-  rename(to = target) %>%
-  group_by(from, to) %>%
-  summarise(weight = sum(weights)) %>%
-  filter(from != to) %>%
-  filter(weight > 50) %>%
-  ungroup()
-
-connected_nodes <- unique(c(mc2_edges_aggregated$from, mc2_edges_aggregated$to))
-
-# Filter out isolated nodes
-mc2_nodes_filtered <- mc2_nodes_filtered %>%
-  filter(id %in% connected_nodes) %>%
-  rename(group = type) %>%
-  mutate(label = ifelse(group %in% c('Entity.Vessel','Entity.Location.Point', 'Entity.Location.City'), id, NA))
-```
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-
-# Visualize the resulting graph
-visNetwork(mc2_nodes_filtered, mc2_edges_aggregated) %>%
-  visIgraphLayout(layout = "layout_with_fr") %>%
-  visLegend() %>%
-  visLayout(randomSeed = 123) %>%
-  visOptions(highlightNearest = list(enabled = TRUE, degree = 1), 
-             nodesIdSelection = TRUE)
-
-
-```
-
-
-
-## 3. Geographical Information
+### Geographical Information
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -312,21 +212,6 @@ geojson_file <- "data/Oceanus Information/Oceanus Geography.geojson"
 geo_data <- st_read(geojson_file) %>%
   st_transform(crs = 3571)%>%
   rename(id = Name)
-```
-
-```{r}
-# Separate MULTIPOLYGON and POINT geometries
-multipolygon_data <- geo_data %>% filter(st_geometry_type(geo_data) == "MULTIPOLYGON")
-point_data <- geo_data %>% filter(st_geometry_type(geo_data) == "POINT")
-
-```
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-# Merge geographical information into network nodes
-mc2_nodes_geo <- mc2_nodes_filtered %>%
-  left_join(st_drop_geometry(geo_data), by = "id")
 ```
 
 ```{r}
@@ -345,4 +230,937 @@ tm_shape(geo_data) +
   tm_text(text = "id", size = 0.6, col = "black") +  # Add labels to the locations
   tm_layout(legend.position = c("left", "bottom"))
 ```
+
+:::
+
+
+## Task 2 (part 1) : EDA
+
+
+::: panel-tabset
+### Filter and Prepare Data
+
+#### Extracting Commodity Fish Data
+Let's derive a function to retrieve the unique fish species found in specific regions.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+commodityfish <- mc2_nodes %>%
+  filter(type == "Entity.Commodity.Fish")
+
+# Extract and transform Fish Species data
+fishspecies_expanded <- mc2_nodes %>%
+  filter(type == "Entity.Location.Region") %>%
+  mutate(Fish_Species = str_remove_all(fish_species_present, 'c\\(|\\)|"')) %>%
+  mutate(Fish_Species = str_split(Fish_Species, ",\\s*")) %>%
+  unnest(Fish_Species) %>%
+  mutate(Fish_Species = str_trim(Fish_Species)) %>%
+  rename(Region = id)
+
+# Join with Commodity Fish data
+fishspecies_expanded <- fishspecies_expanded %>%
+  left_join(commodityfish, by = c("Fish_Species" = "namee")) %>%
+  select(Region, Fish_Species, id)
+
+# Function to get commodity fish IDs for specific regions
+get_commodity_fish_ids <- function(..., regions = NULL) {
+  fishspecies_expanded %>%
+    filter(Region %in% c(..., regions)) %>%
+    pull(id)
+}
+
+```
+
+
+#### Preparing Harbor Report Data
+Let's derive a function to retrieve the unique fish species found in specific regions.
+
+```{r}
+harboureport_culprit<- mc2_links_prep %>%
+  filter(type == "Event.HarborReport") %>%
+  filter(source %in% c("snappersnatcher7be","roachrobberdb6")) %>%
+  rename(vessel = source) %>%
+  rename(city = target) %>%
+  rename(harboreporting_date = date) %>%
+  select(city, vessel, type, harboreporting_date)
+```
+
+
+
+####. Processing Transaction Data
+
+Retrieve and process transaction data to identify suspicious transactions.
+
+
+Let's retrieve the `Transaction` data by applying the filter `type == "Event.Transaction"` for our links data
+
+We then perform a self-join on the transaction dataset on `source` column to get the respective `city` and `fish` column for each cargo delivery, filtering for only the two cities we observed earlier 'City of Paackland', 'City of Lomark' which `snappersnatcher7b` frequented.
+
+
+```{r}
+# Retrieve and process transaction data
+transactions <- mc2_links_prep %>%
+  filter(type == "Event.Transaction") %>%
+  filter(!is.na(source) & !is.na(target)) %>%
+  group_by(source) %>%
+  mutate(row_number = row_number()) %>%
+  pivot_wider(names_from = row_number, values_from = target) %>%
+  rename(city = `2`, fish = `1`) %>%
+  rename(transaction_date = date) %>%
+  select(source, fish, city, type, transaction_date) %>%
+  inner_join(commodityfish, by = c("fish" = "id"))
+
+```
+No duplicated transaction records were found after the self-join
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+duplicated_transactions <- transactions[duplicated(transactions$source), ]
+duplicated_transactions
+```
+
+#### Filtering and Preparing Nodes and Links
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+# Filter and prepare nodes
+mc2_nodes_suspect <- mc2_nodes %>%
+  filter(type %in% c('Entity.Vessel', 'Entity.Location.Point', 'Entity.Location.City', 'Entity.Location.Region')) %>%
+  filter(!(type == 'Entity.Vessel' & company != "SouthSeafood Express Corp"))
+
+# Filter and prepare nodes
+mc2_links_filtered <- mc2_links %>%
+  filter(type %in% c('Event.TransportEvent.TransponderPing','Event.Transaction',"Event.HarborReport"))
+
+# Extract relevant node IDs
+filtered_node_ids <- mc2_nodes_suspect$id
+
+# Filter and prepare edges
+mc2_links_suspect <- mc2_links_filtered %>%
+  filter(source %in% filtered_node_ids & target %in% filtered_node_ids)
+
+# Ensure no missing nodes in the filtered links
+missing_nodes <- setdiff(unique(c(mc2_links_suspect$source, mc2_links_suspect$target)), mc2_nodes_suspect$id)
+if(length(missing_nodes) > 0) {
+  mc2_links_suspect <- mc2_links_suspect %>%
+    filter(!source %in% missing_nodes & !target %in% missing_nodes)
+}
+
+```
+### Construct the Graph
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Create the graph with filtered nodes and edges
+mc2_graph <- tbl_graph(nodes = mc2_nodes_suspect, edges = mc2_links_suspect, directed = TRUE) %>%
+  mutate(betweenness_centrality = centrality_betweenness(),
+         closeness_centrality = centrality_closeness(),
+         degree_centrality = centrality_degree())
+```
+
+
+### Visualisation
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Filter the graph to include only nodes with edges
+mc2_graph_with_edges <- mc2_graph %>%
+  filter(!node_is_isolated())
+
+# Visualization with filtered nodes
+mc2_graph_with_edges %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(alpha = 0.5), show.legend = FALSE) +
+  geom_node_point(aes(
+    size = degree_centrality,
+    color = type,
+    alpha = 0.3)) +
+  geom_node_text(aes(label = id), repel = TRUE, size = 3, vjust = 1.5) +  # Add labels to nodes
+  scale_size_continuous(range = c(1, 10)) +
+  scale_color_manual(values = c("Entity.Vessel" = "blue", 
+                                "Entity.Location.Point"= "red",
+                                "Entity.Location.Region" ="green",
+                                "Entity.Location.City" = "lightblue"
+                                )) +
+  labs(title = "SouthSeafood Express Corp's Activities",
+       color = "Node Type",
+       size = "Degree Centrality")
+```
+
+::: 
+
+
+### Interactive VIsualisation
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Aggregate edges data
+mc2_links_suspect <- mc2_links_suspect %>%
+  left_join(mc2_nodes_suspect, by = c("source" = "id")) %>%
+  rename(from = source) %>%
+  left_join(mc2_nodes_suspect, by = c("target" = "id")) %>%
+  rename(to = target) %>%
+  group_by(from, to) %>%
+  summarise(weight = sum(weights)) %>%
+  filter(from != to) %>%
+  filter(weight > 1) %>%
+  ungroup()
+
+connected_nodes <- unique(c(mc2_links_suspect$from, mc2_links_suspect$to))
+
+# Filter out isolated nodes
+mc2_nodes_suspect <- mc2_nodes_suspect %>%
+  filter(id %in% connected_nodes) %>%
+  rename(group = type) %>%
+  mutate(label = ifelse(group %in% c('Entity.Vessel', 'Entity.Location.Point', 'Entity.Location.City',"Entity.Location.Region"), id, NA)) %>%
+  group_by(company) %>%
+  mutate(id1 = if_else(group == "Entity.Vessel" & company != "" & !is.na(company),
+                       paste0(company, row_number()),
+                       if_else(group == "Entity.Vessel" & (company == "" | is.na(company)), id, NA_character_)),
+         id1 = if_else(group != "Entity.Vessel", id, id1)) %>%
+  ungroup()
+
+
+### Visualize the Graph
+
+# Visualize the resulting graph
+visNetwork(mc2_nodes_suspect, mc2_links_suspect) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123) %>%
+  visOptions(highlightNearest = list(enabled = TRUE, degree = 1),
+             nodesIdSelection = TRUE,
+             selectedBy = "type")  # Add type dropdown
+
+
+```
+
+
+
+
+
+
+
+
+
+## Task 2 (part 2) : Deep Investigations into "snappersnatcher7b"
+
+
+::: panel-tabset
+
+
+### 1. Fish Species in Ghoti Preserve
+From the EDA/ visualisation earlier, it seems `"snappersnatcher7be"` frequents:
+
+- Locations: `"Nav1"`, `"Nav2"` which is extremely near `"Ghoti Preserve"`
+
+- Region: `"Wrasse Beds"` , `"Ghoti Preserve"`, `"Cod Table"`
+
+- City: `City of Paackland` and `City of Lomark`
+
+
+Hence, let's dentify the fish species commonly found in the "Ghoti Preserve" region.
+
+In `"Ghoti Preserve"`, these are the fish species that commonly found. The names are as below:
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Retrieve unique fish species in Ghoti Preserve
+unique_fish_species_ghoti <- fishspecies_expanded %>%
+  filter(Region == "Ghoti Preserve") %>%
+  pull(Fish_Species) %>%
+  unique()
+
+# Print the unique Fish_Species
+print(unique_fish_species_ghoti)
+```
+
+
+### 2. Suspicious Transactions
+
+Merge the transactions with HarborReport data to identify relevant suspicious transactions.
+
+
+Next, we proceed with the HarborReport data by applying filter type == `Event.HarborReport` to our links dataset and retrieve only`snappersnatcher7b`'s records then merge with transactions dataset to filter out relevant suspicious transactions given the fact that the harbor reports are likely to be a few days after the transaction.
+
+Note that, this is a rough merge on city, hence we are just narrowing down and end up with likely pairs of transactions with snappersnatcher7be's harbor reporting to guess its cargo
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Retrieve HarborReport data for "snappersnatcher7be"
+harboureport_culprit<- mc2_links_prep %>%
+  filter(type == "Event.HarborReport") %>%
+  filter(source =="snappersnatcher7be") %>%
+  rename(vessel = source) %>%
+  rename(city = target) %>%
+  rename(harboreporting_date = date) %>%
+  select(city, vessel, type, harboreporting_date)
+
+
+# Merge with transactions and apply filter condition
+merged_data <- merge(transactions, harboureport_culprit, by = "city", all.x = TRUE)
+
+
+filtered_transactions <- merged_data %>%
+  filter(harboreporting_date >= transaction_date + 1 &  # Change the number based on your lag
+         harboreporting_date <= transaction_date + 3) %>%
+  select(namee, fish, city,harboreporting_date,transaction_date, vessel)
+
+```
+
+```{r}
+# Filter out entries where namee is not "Cod/Gadus n.specificatae"
+filtered_transactions <- filtered_transactions %>%
+  filter(namee != "Cod/Gadus n.specificatae")
+
+
+joined_data <- merge(filtered_transactions, fishspecies_expanded, by.x = "namee", by.y = "Fish_Species", all.x = TRUE)
+unique_regions <- unique(joined_data$Region)
+unique_regions
+
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+# Create the timeline plot
+ggplot(filtered_transactions)  +
+  geom_segment(aes(x = transaction_date, xend = harboreporting_date, y = namee, yend = namee, color = vessel), size = 1.5) +
+  geom_point(aes(x = transaction_date, y = namee, color = vessel, shape = city), size = 3) +
+  labs(title = "Suspicious Transactions and Harbor Reports for roachrobberdb6", x = "Date", y = "Cargo Type") +
+  theme_minimal() +
+  scale_color_discrete(name = "Vessel") +
+  scale_shape_discrete(name = "City") +  # Add legend for city
+  theme(
+    plot.title = element_text(hjust = 0, face = "bold"),  # Align the title to the left
+    plot.title.position = "plot"                          # Ensure title alignment is based on the entire plot area
+  )
+
+```
+
+
+### 3. Suspicious Findings
+
+From our observations, "snappersnatcher7be" is likely carrying the following cargo:
+
+- "Cod/Gadus n.specificatae" around 20th March and
+
+- "Wrasse/Labridae n.refert" around 8th May
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+print(unique(filtered_transactions$namee))
+```
+
+Additionally, we found its transportation activities suspicious due to its frequent visits to "Ghoti Preserve":
+
+- `"Nav 1"`: 17 occurences
+- `"Nav 2"`: 7 occurences
+
+For legitimate occurrences related to "Wrasse/Labridae n.refert", there's fewer:
+
+- `"Nav C"`: 10 occurences
+- `"Wrasse Beds"`: 3 occurences
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Retrieve TransponderPing data for "snappersnatcher7be"
+transponder_culprit <- mc2_links_prep %>%
+  filter(type == "Event.TransportEvent.TransponderPing",
+         target == "snappersnatcher7be",
+         time <= "2035-05-09",
+         time >= "2035-04-09")
+
+# Count unique categories in the 'source' column
+count_unique_categories(transponder_culprit, 'source') 
+
+```
+
+
+Bar Plot for Suspicious and Legitimate Transportation Activities
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Data for transportation activities
+location_counts <- transponder_culprit %>%
+  filter(!source %in% c('Cod Table', 'Exit East',"City of Paackland", "City of Lomark")) %>% 
+  group_by(source) %>%
+  summarise(Occurrences = n()) %>%
+  ungroup() %>%
+  rename(Location = source) %>%
+  mutate(Type = case_when(
+    Location %in% c("Nav 1", "Nav 2") ~ "Suspicious",
+    TRUE ~ "Legitimate"
+  ))
+
+# Reorder Location factor levels so "Suspicious" locations appear at the top
+location_counts <- location_counts %>%
+  mutate(Location = factor(Location, levels = unique(Location[order(Type, decreasing = TRUE)])))
+
+# Bar plot for transportation activities
+ggplot(location_counts, aes(x = Occurrences, y = Location, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Transportation Activities of snappersnatcher7be", x = "Number of Occurrences", y = "Location") +
+  scale_fill_manual(values = c("Suspicious" = "red", "Legitimate" = "blue")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0, face = "bold"),  # Align the title to the left
+    plot.title.position = "plot"                          # Ensure title alignment is based on the entire plot area
+  )
+```
+
+
+3. Geographical Plot 
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+location_counts <- transponder_culprit %>%
+  filter(source %in% c('Cod Table', 'Exit East',"City of Paackland", "City of Lomark","Nav 1", "Nav 2", "Ghoti Preserve", "Exit East", "Nav C", "Wrasse Beds", "Don Limpet Preserve")) %>% 
+  group_by(source) %>%
+  summarise(Occurrences = n()) %>%
+  ungroup() %>%
+  rename(Location = source) %>%
+  mutate(Marked = case_when(
+    Location %in% c("Nav 1", "Nav 2") ~ "Suspicious",   TRUE ~ "Legitimate"
+  )) %>%
+  mutate(Location = factor(Location, levels = unique(Location[order(Marked, decreasing = TRUE)])))  # Reorder Location factor levels
+
+# Merge location counts with geo data
+geo_data_0 <- left_join(geo_data, location_counts, by = c("id" = "Location"))
+
+# Extract coordinates from geometry data
+coords_0 <- st_coordinates(st_centroid(geo_data_0))
+
+# Add coordinates to the geo_data
+geo_data_0$Longitude <- coords_0[,1]
+geo_data_0$Latitude <- coords_0[,2]
+
+
+# Filter for specific IDs to label
+label_ids_0 <- c('Cod Table', 'Exit East', 'City of Paackland', 'City of Lomark', 'Nav 1', 'Nav 2', 'Ghoti Preserve', 'Exit East', 'Nav C', 'Wrasse Beds', 'Don Limpet Preserve')
+geo_data_labels_0 <- geo_data_0 %>%
+  filter(id %in% label_ids_0)
+
+# Set plot size (for RStudio or other environments that support resizing)
+options(repr.plot.width = 10, repr.plot.height = 8)
+
+# Geographical plot with labels
+ggplot() +
+  geom_sf(data = geo_data_labels_0, aes(geometry = geometry, color = Marked)) +
+  geom_text(data = geo_data_labels_0 , aes(x = Longitude, y = Latitude, label = id), size = 2, color = "black", fontface = "bold") +
+  scale_color_manual(values = c("Suspicious" = "red", "Legitimate" = "blue")) +
+  labs(title = "Geographical Plot of snappersnatcher7be Activities") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16),  # Enlarge title
+        legend.title = element_text(size = 12),  # Enlarge legend title
+        legend.text = element_text(size = 10),  # Enlarge legend text
+        axis.text = element_text(size = 10),  # Enlarge axis text
+        axis.title = element_text(size = 12))  # Enlarge axis title
+```
+
+
+
+
+
+
+:::
+
+
+
+
+## Task 2 (part 3) : Deep Investigations into "roachrobberdb6"
+
+::: panel-tabset
+
+### 1. Suspicious Transactions
+
+Merge the transactions with HarborReport data to identify relevant suspicious transactions.
+
+
+Next, we proceed with the HarborReport data by applying filter type == `Event.HarborReport` to our links dataset and retrieve only`snappersnatcher7b`'s records then merge with transactions dataset to filter out relevant suspicious transactions given the fact that the harbor reports are likely to be a few days after the transaction.
+
+Note that, this is a rough merge on city, hence we are just narrowing down and end up with likely pairs of transactions with snappersnatcher7be's harbor reporting to guess its cargo
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Retrieve HarborReport data for "roachrobberdb6"
+harboureport_culprit1<- mc2_links_prep %>%
+  filter(type == "Event.HarborReport") %>%
+  filter(source =="roachrobberdb6") %>%
+  rename(vessel = source) %>%
+  rename(city = target) %>%
+  rename(harboreporting_date = date) %>%
+  select(city, vessel, type, harboreporting_date)
+
+
+# Merge with transactions and apply filter condition
+merged_data1 <- merge(transactions, harboureport_culprit1, by = "city", all.x = TRUE)
+
+
+filtered_transactions1 <- merged_data1 %>%
+  filter(harboreporting_date >= transaction_date + 1 &  # Change the number based on your lag
+         harboreporting_date <= transaction_date + 3) %>%
+  select(namee, fish, city,harboreporting_date,transaction_date, vessel)
+
+```
+
+```{r}
+# Filter out entries where namee is not "Cod/Gadus n.specificatae"
+filtered_transactions1 <- filtered_transactions1 %>%
+  filter(namee != "Cod/Gadus n.specificatae")
+
+
+joined_data <- merge(filtered_transactions1, fishspecies_expanded, by.x = "namee", by.y = "Fish_Species", all.x = TRUE)
+unique_regions <- unique(joined_data$Region)
+unique_regions
+
+```
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+# Create the timeline plot
+ggplot(filtered_transactions1) +
+  geom_segment(aes(x = transaction_date, xend = harboreporting_date, y = namee, yend = namee, color = vessel), size = 1.5) +
+  geom_point(aes(x = transaction_date, y = namee, color = vessel, shape = city), size = 3) +
+  labs(title = "Suspicious Transactions and Harbor Reports for roachrobberdb6", x = "Date", y = "Cargo Type") +
+  theme_minimal() +
+  scale_color_discrete(name = "Vessel") +
+  scale_shape_discrete(name = "City") +  # Add legend for city
+  theme(
+    plot.title = element_text(hjust = 0, face = "bold"),  # Align the title to the left
+    plot.title.position = "plot"                          # Ensure title alignment is based on the entire plot area
+  )
+```
+
+
+### 2. No Suspicious Findings
+
+From our observations, "roachrobberdb6" is likely carrying the following cargo:
+
+- "Wrasse/Labridae n.refert" around February and April
+
+- "Harland/Piscis sapidum" in April
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+print(unique(filtered_transactions1$namee))
+```
+
+
+We did not manage to find its fishing activities suspicious between the period however for the date range. It is likely not to be suspicious.
+
+- `"Nav C"`: 38 occurences
+- `"Wrasse Beds"`: 42 occurences
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Retrieve TransponderPing data for "roachrobberdb6"
+transponder_culprit1 <- mc2_links_prep %>%
+  filter(type == "Event.TransportEvent.TransponderPing",
+         target == "roachrobberdb6",
+         time <= "2035-04-05",
+         time >= "2035-03-20")
+
+# Count unique categories in the 'source' column
+count_unique_categories(transponder_culprit1, 'source') 
+
+```
+
+
+#### Bar Plot for Suspicious and Legitimate Transportation Activities
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Data for transportation activities
+location_counts1 <- transponder_culprit1 %>%
+  filter(!source %in% c('Cod Table', 'Exit East',"City of Paackland", "City of Lomark","City of Himark")) %>% 
+  group_by(source) %>%
+  summarise(Occurrences = n()) %>%
+  ungroup() %>%
+  rename(Location = source) %>%
+  mutate(Type = case_when(
+    Location %in% c("Nav 1", "Nav 2") ~ "Suspicious",
+    TRUE ~ "Legitimate"
+  ))
+
+# Reorder Location factor levels so "Suspicious" locations appear at the top
+location_counts1 <- location_counts1 %>%
+  mutate(Location = factor(Location, levels = unique(Location[order(Type, decreasing = TRUE)])))
+
+# Bar plot for transportation activities
+ggplot(location_counts1, aes(x = Occurrences, y = Location, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Transportation Activities of roachrobberdb6", x = "Number of Occurrences", y = "Location") +
+  scale_fill_manual(values = c("Suspicious" = "red", "Legitimate" = "blue")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0, face = "bold"),  # Align the title to the left
+    plot.title.position = "plot"                          # Ensure title alignment is based on the entire plot area
+  )
+```
+
+
+#### Geographical Visualisation
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+# Create location_counts1 with the Marked column
+location_counts1 <- transponder_culprit1 %>%
+  filter(source %in% c('Cod Table', 'Exit East',"City of Paackland", "City of Lomark","Nav 1", "Nav 2", "Ghoti Preserve", "Exit East", "Nav C", "Wrasse Beds", "Don Limpet Preserve","Nemo Preserve","Tuna Shelf")) %>% 
+  group_by(source) %>%
+  summarise(Occurrences = n()) %>%
+  ungroup() %>%
+  rename(Location = source) %>%
+  mutate(Marked = case_when(
+    Location %in% c("Nav 1", "Nav 2") ~ "Suspicious",   
+    TRUE ~ "Legitimate"
+  )) %>%
+  mutate(Location = factor(Location, levels = unique(Location[order(Marked, decreasing = TRUE)])))  # Reorder Location factor levels
+
+# Merge location counts with geo_data to include the Marked column
+geo_data_1 <- left_join(geo_data, location_counts1, by = c("id" = "Location"))
+
+# Extract coordinates from geometry data
+coords_1 <- st_coordinates(st_centroid(geo_data_1))
+# Warning: st_centroid assumes attributes are constant over geometries
+
+# Add coordinates to the geo_data
+geo_data_1$Longitude <- coords_1[,1]
+geo_data_1$Latitude <- coords_1[,2]
+
+# Filter for specific IDs to label
+label_ids <- c('Cod Table', 'Exit East', 'City of Paackland', 'City of Lomark', 'Nav 1', 'Nav 2', 'Ghoti Preserve', 'Exit East', 'Nav C', "Wrasse Beds", "Don Limpet Preserve","Nemo Preserve","Tuna Shelf")
+geo_data_labels_1 <- geo_data_1 %>%
+  filter(id %in% label_ids)
+
+# Set plot size (for RStudio or other environments that support resizing)
+options(repr.plot.width = 10, repr.plot.height = 8)
+
+# Geographical plot with labels
+ggplot() +
+  geom_sf(data = geo_data_labels_1, aes(geometry = geometry, color = geo_data_labels_1$Marked)) +
+  geom_text(data = geo_data_labels_1 , aes(x = Longitude, y = Latitude, label = id), size = 2, color = "black", fontface = "bold") +
+  scale_color_manual(values = c("Suspicious" = "red", "Legitimate" = "blue")) +
+  labs(title = "Geographical Plot of roachrobberdb6 Activities") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16),  # Enlarge title
+        legend.title = element_text(size = 12),  # Enlarge legend title
+        legend.text = element_text(size = 10),  # Enlarge legend text
+        axis.text = element_text(size = 10),  # Enlarge axis text
+        axis.title = element_text(size = 12))  # Enlarge axis title
+```
+
+
+:::
+
+
+
+
+## Task 2 (part 4) : Transshipment Analysis
+
+
+
+### 1. Extract  Movement Data
+First, we extract vessel movement data from the mc2_links_prep dataset. Specifically, we are filtering the data to retain only the transponder ping events, which represent instances of vessel movement. Each ping event is associated with a location, vessel ID, and timestamp.
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+# Extract transponder ping data for vessel movements
+transponder_pings <- mc2_links_prep %>%
+  filter(type == "Event.TransportEvent.TransponderPing") %>%
+  rename(location = source, vessel = target, ping_date = ping_date) %>%
+  mutate(ping_id = row_number())  # Add a unique identifier for each row
+
+```
+
+
+### 2. Identify Vessel Pairs at the Same Location and Time
+
+Next, we're identifying pairs of vessels that are at the same location at the same time. This is achieved through a self-join operation on the transponder ping data. After ensuring that the same vessel is not paired with itself, we select distinct pairs to avoid duplicates.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+# Perform a self-join to find pairs of vessels at the same location and time
+vessel_pairs <- transponder_pings %>%
+  inner_join(transponder_pings, by = c("location", "ping_date")) %>%
+  filter(ping_id.x < ping_id.y) %>%  # Ensure we do not pair the same id 
+  filter(vessel.x != vessel.y) %>%  # Ensure we do not pair the same vessel
+  
+  select(
+    vessel1 = vessel.x,
+    vessel2 = vessel.y,
+    location,
+    ping_date
+  )
+```
+
+
+### 3. Aggregate and Analyze Transshipments
+
+In this section, we aggregate and analyze the transshipment data. We aggregate the count of vessel pairs by date. Then, we join the vessel pairs with company information to identify the companies involved in transshipments. Finally, we group the transshipment data by company pairs and date to analyze the frequency of transshipments.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+# Aggregate the count of vessel pairs by date
+transshipments_count <- vessel_pairs %>%
+  mutate(date = as.Date(ping_date)) %>%
+  group_by(date) %>%
+  summarise(transshipments = n())
+
+# Join vessel_pairs with mc2_nodes to get the company information
+vessel_pairs_with_company <- vessel_pairs %>%
+  left_join(mc2_nodes %>% select(id, company), by = c("vessel1" = "id")) %>%
+  rename(company1 = company) %>%
+  left_join(mc2_nodes %>% select(id, company), by = c("vessel2" = "id")) %>%
+  rename(company2 = company)
+
+# Group vessel pairs by company
+transshipments_by_company <- vessel_pairs_with_company %>%
+  filter(company1 == company2) %>%
+  mutate(date = as.Date(ping_date)) %>%  # Ensure date column is present
+  mutate(transshipment = ifelse(duplicated(cbind(company1, company2, date)) | 
+                                duplicated(cbind(company2, company1, date)), 0, 1)) %>%  # Set transshipments to 0 if duplicated
+  group_by(company1, company2, date) %>%
+  summarise(transshipments = sum(transshipment)) %>%
+  ungroup()
+
+# Filter and summarise transshipments for vessel pairs belonging to the same company
+same_company_transshipments <- transshipments_by_company %>%
+  group_by(company1, company2) %>%
+  summarise(transshipments = sum(transshipments)) %>%
+  ungroup()
+
+```
+
+### 4. Visualize Transshipment Data for Specific Company
+
+Finally, we're visualizing the transshipment data for a specific company, "SouthSeafood Express Corp". This plot shows the timeline of transshipments for vessel pairs belonging to this company.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+# Filter vessel pairs belonging to the same company "SouthSeafood Express Corp"
+SouthSeafood_transshipments <- transshipments_by_company %>%
+  filter(company1 == "SouthSeafood Express Corp" & company2 == "SouthSeafood Express Corp")
+```
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+# Create a plot
+ggplot(SouthSeafood_transshipments, aes(x = date, y = transshipments)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Transshipments for Vessel Pairs of SouthSeafood Express Corp",
+       x = "Date",
+       y = "Transshipments Count") +
+  theme_minimal()
+```
+
+## Task 2 (part 5) : Insights from Visualisations
+
+
+::: callout-note
+**Suspicious Movement and Catch Contents of SouthSeafood Express Corp**
+
+-   **Movement Patterns**:
+
+  -   The vessel "snappersnatcher7be" shows frequent visits to suspicious locations such as "Nav 1" (17 occurrences) and "Nav 2" (7 occurrences), which are near "Ghoti Preserve".
+  
+  -   The visualization illustrates a significant number of transshipment events involving vessels associated with "SouthSeafood Express Corp." These events, occurring over a period of time, indicate a pattern of coordinated activities suggestive of illicit practices.The plotted data reveals a consistent trend of transshipment occurrences over time, which deviates significantly from normal maritime operations. The frequency and pattern of these events suggest deliberate efforts to transfer goods between vessels, potentially for illegal purposes such as smuggling or avoiding regulatory oversight.
+
+-   **Catch Contents**:
+
+  -   The vessel "snappersnatcher7be" is suspected of carrying cargo such as "Wrasse/Labridae n.refert" which is found only in "Ghoti Preserve" , "Wrasse Beds" and "Nemo Reef." However, our visualisation reveals that it does not venture near "Nemo Reef" and it spends an equal amount of time at "Wrasse Beds" and locations near "Ghoti Preserve"
+  
+:::
+
+
+::: callout-note
+**Timing and Locations of Illegal Fishing Activities for SouthSeafood Express Corp**
+
+-   **Timeframe of Illegal Activities**:
+
+  -   Around May 8th, "snappersnatcher7be" is likely involved in suspicious  cargo activities involving "Wrasse/Labridae n.refert". Hence, we suspect it conducted illegal fishing in the month previous.
+  
+
+-   **Locations of Illegal Fishing**:
+
+  -   The vessel's frequent visits to "Nav 1" and "Nav 2" suggest these locations are hotspots for illegal activities.
+
+  -   These locations are close to "Ghoti Preserve", a region known for fish species like "Wrasse/Labridae n.refert".
+  
+:::
+
+
+## Task 3 (part 1) :
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+transshipments_by_company %>%
+  group_by(company1, company2) %>%
+  summarise(total_transshipments = sum(transshipments)) %>%
+  arrange(desc(total_transshipments)) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(company1, total_transshipments), y = total_transshipments)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Intra-Company Transshipment Activity",
+       x = "Company",
+       y = "Total Transshipments") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+
+```
+
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+# Extract transponder ping data for vessel movements
+transponder_pings <- mc2_links_prep %>%
+  filter(type == "Event.TransportEvent.TransponderPing") %>%
+  rename(location = source, vessel = target, ping_date = ping_date) %>%
+  mutate(ping_id = row_number(),  # Add a unique identifier for each row
+         location = case_when(
+           location == "City of Haacklee" ~ "Haacklee",
+           location == "City of Himark" ~ "Himark",
+           location == "City of Port Grove" ~ "Port Grove",
+           location == "City of Lomark" ~ "Lomark",
+           location == "City of Paackland" ~ "Paackland",
+           location == "City of South Paackland" ~ "South Paackland",
+           TRUE ~ location  # Keep original value if none of the above conditions are met
+         ))
+
+# Join with mc2_nodes to get the company information
+transponder_ping_df2 <- transponder_pings %>%
+  inner_join(mc2_nodes %>% select(id, company), by = c("vessel" = "id")) %>% 
+  mutate(date =ping_date,
+         start_time = time)
+
+# Define the date range for filtering
+start_date <- as.Date('2035-04-27')
+end_date <- as.Date('2035-05-27')
+
+transponder_ping_south_df2 <- transponder_ping_df2 %>% 
+  filter(vessel == "roachrobberdb6" ,
+         between(date, start_date, end_date))
+  
+data <- transponder_ping_south_df2 %>% 
+  arrange(start_time) %>% 
+  mutate(end_time = lead(start_time)) 
+
+# Assign numeric values to locations for plotting purposes 
+data$location_factor <- as.factor(data$location) 
+data$location_num <- as.numeric(data$location_factor) 
+```
+
+
+```{r}
+# Create the plot 
+
+ggplot(data, aes(x = date, y = location_num, group = vessel)) +
+  geom_point(aes(color = location_factor), size = 4) + 
+  geom_path(aes(color = location_factor), size = 1, arrow = arrow(type = "open", length = unit(0.02, "npc"))) + 
+  facet_wrap(~ vessel, ncol = 1, scales = "free_y") + 
+  scale_y_continuous(breaks = unique(data$location_num), labels = unique(data$location)) + 
+  labs(title = "Path of Vessel Locations Over Time", 
+       x = "Time", 
+       y = "Location", 
+       color = "Location") + 
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+```
+
+```{r}
+# Arrange data by start_time and calculate end_time
+data <- transponder_ping_south_df2 %>% 
+  arrange(start_time) %>% 
+  mutate(end_time = lead(start_time)) 
+
+# Assign numeric values to locations for plotting purposes 
+data$location_factor <- as.factor(data$location) 
+data$location_num <- as.numeric(data$location_factor) 
+
+# Validate geometries
+geo_data <- geo_data %>%
+  st_make_valid()
+
+# Join node data
+mc2_nodes_geo <- data %>%
+  left_join(geo_data, by = c("location" = "id"))
+
+# Convert the resulting data frame to sf object
+mc2_nodes_geo_sf <- st_as_sf(mc2_nodes_geo)
+
+# Extract coordinates for plotting for geometries
+mc2_nodes_geo_sf <- mc2_nodes_geo_sf %>%
+  mutate(Longitude = st_coordinates(st_centroid(geometry))[, 1],
+         Latitude = st_coordinates(st_centroid(geometry))[, 2])
+
+
+# Plot vessel trajectories on a map
+ggplot() +
+  geom_path(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude, group = location), color = "blue") +
+  geom_point(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude), color = "red") +  # Plot nodes
+  labs(x = "Longitude", y = "Latitude") +
+  coord_fixed() +  # Fix aspect ratio
+  theme_minimal()  # Minimal theme
+
+```
+
+
+
+
+```{r}
+#### Last HarborReport of SouthSeafood Express Corp"
+date_caught <- max(harboureport_culprit$harboreporting_date)
+print(date_caught)
+```
+`"SouthSeafood Express Corp"`was likely caught just after `"2035-05-09"` as that happened to be it's last harbor report.
+
+
+
+
+
+
+
+
+
 
