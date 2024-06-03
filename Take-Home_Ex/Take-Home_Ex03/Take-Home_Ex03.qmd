@@ -20,9 +20,8 @@ execute:
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
-pacman::p_load(jsonlite, igraph, tidygraph, ggraph, 
-               visNetwork, lubridate, clock,
-               tidyverse, graphlayouts, sf , sp, sfdep,tmap, viridis, reshape2, stplanr, httr, lwgeom, DT, units, maps)
+pacman::p_load(tidyverse, sf, sp, lwgeom, tmap, units, maps, igraph, tidygraph, ggraph, visNetwork, lubridate, jsonlite, httr,tmap,viridis,plotly)
+
 ```
 
 ## 1.2. Loading the Data
@@ -46,15 +45,8 @@ mc2_links_prep <- as_tibble(mc2_data$links) %>%
          time =  as.POSIXct(time, format="%Y-%m-%dT%H:%M:%OS", tz="UTC"),
          date = as.Date(as.character(date), format = "%Y-%m-%d"),
          ping_date = as.Date(as.POSIXct(time, format="%Y-%m-%dT%H:%M:%OS", tz="UTC"))) %>%
-  mutate(day_of_week = wday(time, label = TRUE))%>%
-  select(type, time, dwell, source, target, date, ping_date,raw_source, key, aphorism, holiday_greeting, wisdom, `saying of the sea`, day_of_week)
-  
+  select(type, time, dwell, source, target, date, ping_date,raw_source)
 
-mc2_links_dow <- mc2_links_prep%>%
-  group_by(source, target, type,day_of_week) %>%
-  summarise(weights = n(), .groups = 'drop') %>%
-  filter(source != target) %>%
-  ungroup()
 
 mc2_links <- mc2_links_prep%>%
   group_by(source, target, type) %>%
@@ -210,7 +202,6 @@ count_unique_companies
 # Read the GeoJSON file
 geojson_file <- "data/Oceanus Information/Oceanus Geography.geojson"
 geo_data <- st_read(geojson_file) %>%
-  st_transform(crs = 3571)%>%
   rename(id = Name)
 ```
 
@@ -1068,22 +1059,24 @@ transponder_pings <- mc2_links_prep %>%
          ))
 
 # Join with mc2_nodes to get the company information
-transponder_ping_df2 <- transponder_pings %>%
+transponder_ping_df <- transponder_pings %>%
   inner_join(mc2_nodes %>% select(id, company), by = c("vessel" = "id")) %>% 
   mutate(date =ping_date,
          start_time = time)
 
-# Define the date range for filtering
-start_date <- as.Date('2035-04-27')
-end_date <- as.Date('2035-05-27')
+# Calculate end_time by vessel
+data <- transponder_ping_df %>%
+  group_by(vessel) %>%
+  arrange(start_time) %>%
+  mutate(end_time = lead(start_time)) %>%
+  filter(date >= as.Date("2035-05-01") & date <= as.Date("2035-05-10"))%>%
+  ungroup() %>%
+  select(date, start_time, end_time, location, vessel,company)
 
-transponder_ping_south_df2 <- transponder_ping_df2 %>% 
-  filter(vessel == "roachrobberdb6" ,
-         between(date, start_date, end_date))
-  
-data <- transponder_ping_south_df2 %>% 
-  arrange(start_time) %>% 
-  mutate(end_time = lead(start_time)) 
+# Remove rows where end_time is NA (last observation for each vessel)
+data <- data %>% filter(!is.na(end_time))%>% filter(!is.na(company))
+
+# Now you have start_time and end_time calculated for each vessel
 
 # Assign numeric values to locations for plotting purposes 
 data$location_factor <- as.factor(data$location) 
@@ -1092,31 +1085,60 @@ data$location_num <- as.numeric(data$location_factor)
 
 
 ```{r}
-# Create the plot 
+# Ensure data is arranged
+filtered_data <- data %>%
+  arrange(vessel, date)
 
-ggplot(data, aes(x = date, y = location_num, group = vessel)) +
-  geom_point(aes(color = location_factor), size = 4) + 
-  geom_path(aes(color = location_factor), size = 1, arrow = arrow(type = "open", length = unit(0.02, "npc"))) + 
-  facet_wrap(~ vessel, ncol = 1, scales = "free_y") + 
-  scale_y_continuous(breaks = unique(data$location_num), labels = unique(data$location)) + 
-  labs(title = "Path of Vessel Locations Over Time", 
-       x = "Time", 
-       y = "Location", 
-       color = "Location") + 
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+# Create the Plotly plot with initial markers and labels
+plot <- plot_ly() %>%
+  add_markers(data = filtered_data, x = ~date, y = ~location_num, color = ~location_factor, 
+              type = 'scatter', mode = 'markers+text', text = ~location, textposition = 'top center', hoverinfo = 'text')
+
+# Add lines for each vessel and set initial visibility to FALSE
+vessel_list <- unique(filtered_data$vessel)
+for (v in vessel_list) {
+  vessel_data <- filtered_data[filtered_data$vessel == v, ]
+  plot <- plot %>%
+    add_lines(data = vessel_data, x = ~date, y = ~location_num, 
+              name = v, visible = FALSE, hoverinfo = 'none')
+}
+
+# Create dropdown buttons for each company
+buttons <- lapply(unique(filtered_data$company), function(company) {
+  company_vessels <- unique(filtered_data$vessel[filtered_data$company == company])
+  visibility <- c(TRUE, sapply(vessel_list, function(v) {
+    v %in% company_vessels
+  }))
+  list(
+    method = "update",
+    args = list(
+      list(visible = visibility),
+      list(title = paste("Path of Vessels in Company", company, "Over Time"))
+    ),
+    label = company
+  )
+})
+
+# Add layout settings with dropdown menu
+plot <- plot %>%
+  layout(title = "Path of Vessel Locations Over Time",
+         xaxis = list(title = "Time"),
+         yaxis = list(title = "Location"),
+         hovermode = 'closest',
+         updatemenus = list(
+           list(
+             type = "dropdown",
+             direction = "down",
+             buttons = buttons
+           )
+         )
+  )
+
+plot
 
 ```
 
 ```{r}
-# Arrange data by start_time and calculate end_time
-data <- transponder_ping_south_df2 %>% 
-  arrange(start_time) %>% 
-  mutate(end_time = lead(start_time)) 
-
-# Assign numeric values to locations for plotting purposes 
-data$location_factor <- as.factor(data$location) 
-data$location_num <- as.numeric(data$location_factor) 
 
 # Validate geometries
 geo_data <- geo_data %>%
@@ -1134,14 +1156,46 @@ mc2_nodes_geo_sf <- mc2_nodes_geo_sf %>%
   mutate(Longitude = st_coordinates(st_centroid(geometry))[, 1],
          Latitude = st_coordinates(st_centroid(geometry))[, 2])
 
+```
 
-# Plot vessel trajectories on a map
+
+
+```{r}
+
+tmap_mode("plot")
+
+geo_data <- st_as_sf(geo_data, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# Add columns to mark origin and destination
+mc2_nodes_geo_sf_start_ <- mc2_nodes_geo_sf %>%
+  mutate(point_type = case_when(
+    row_number() == 1 ~ "origin",
+    row_number() == n() ~ "destination",
+    TRUE ~ "middle"
+  ))
+
+# Create the tmap with labels
+tm_shape(geo_data) +
+  tm_borders(col = "black", alpha = 0.5) +  # Optional: borders around each shape
+  tm_symbols(col = "red", size = 0.2) +  # Plot nodes
+  tm_layout(main.title = "Vessel Trajectories",
+            main.title.size = 0.8) +
+  tmap_style("watercolor")  # Using the watercolor style for background
+
 ggplot() +
-  geom_path(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude, group = location), color = "blue") +
-  geom_point(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude), color = "red") +  # Plot nodes
-  labs(x = "Longitude", y = "Latitude") +
-  coord_fixed() +  # Fix aspect ratio
+  geom_sf(data = geo_data, aes(geometry = geometry), color = "red", size = 1) +  # Plot nodes
+  geom_path(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude, group = vessel), color = "blue", size = 1) +  # Plot paths
+  geom_text(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude, label = location), size = 3, vjust = -1) +  # Add labels
+  scale_color_manual(values = c("origin" = "green", "destination" = "red", "middle" = "blue")) +  # Colors for different points
+  labs(x = "Longitude", y = "Latitude", title = "Vessel Trajectories") +
+  coord_sf() +  # Use coord_sf for spatial data
   theme_minimal()  # Minimal theme
+```
+
+```{r}
+
+
+
 
 ```
 
