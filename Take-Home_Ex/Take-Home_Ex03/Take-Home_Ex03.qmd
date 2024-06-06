@@ -1085,6 +1085,68 @@ data$location_num <- as.numeric(data$location_factor)
 
 
 ```{r}
+# Filter data and sort by vessel and date
+filtered_data <- data %>%
+  filter(vessel %in% c("snappersnatcher7be","roachrobberdb6","albacoreangler47d","costasmeraldaac7","kingfishcapturerbe7"))%>%
+  arrange(vessel, date)
+
+# Create the Plotly plot with initial markers and labels
+plot <- plot_ly() %>%
+  add_markers(data = filtered_data, x = ~date, y = ~location_num, color = ~location_factor, 
+              type = 'scatter', mode = 'markers+text', text = ~location, textposition = 'top center', hoverinfo = 'text')
+
+# Add lines for each vessel and set initial visibility to FALSE
+vessel_list <- unique(filtered_data$vessel)
+visibility_list <- lapply(vessel_list, function(v) FALSE)
+
+for (v in vessel_list) {
+  vessel_data <- filtered_data %>% filter(vessel == v)
+  plot <- plot %>%
+    add_lines(data = vessel_data, x = ~date, y = ~location_num, 
+              name = v, visible = FALSE, hoverinfo = 'none')
+}
+
+# Create dropdown buttons for each vessel
+buttons <- lapply(seq_along(vessel_list), function(i) {
+  visibility <- c(TRUE, rep(FALSE, length(vessel_list)))
+  visibility[i + 1] <- TRUE  # Add 1 because the first element is for the markers
+  list(
+    method = "update",
+    args = list(
+      list(visible = visibility),
+      list(title = paste("Path of", vessel_list[i], "Over Time"))
+    ),
+    label = vessel_list[i]
+  )
+})
+
+# Add layout settings with dropdown menu
+plot <- plot %>%
+  layout(title = "Path of Vessel Locations Over Time",
+         xaxis = list(title = "Time"),
+         yaxis = list(title = "Location"),
+         hovermode = 'closest',
+         updatemenus = list(
+           list(
+             type = "dropdown",
+             direction = "down",
+             buttons = buttons,
+             showactive = TRUE
+           )
+         )
+  )
+
+plot
+```
+```{r}
+test <-  unique(filtered_data$vessel)
+test
+
+```
+
+
+
+```{r}
 # Ensure data is arranged
 filtered_data <- data %>%
   arrange(vessel, date)
@@ -1105,10 +1167,9 @@ for (v in vessel_list) {
 
 # Create dropdown buttons for each company
 buttons <- lapply(unique(filtered_data$company), function(company) {
-  company_vessels <- unique(filtered_data$vessel[filtered_data$company == company])
-  visibility <- c(TRUE, sapply(vessel_list, function(v) {
-    v %in% company_vessels
-  }))
+  company_vessels <- filtered_data$vessel[filtered_data$company == company]
+  visibility <- sapply(vessel_list, function(v) v %in% company_vessels)
+  visibility <- c(TRUE, visibility)  # Ensure markers are always visible
   list(
     method = "update",
     args = list(
@@ -1136,7 +1197,12 @@ plot <- plot %>%
 
 plot
 
+
+
 ```
+
+
+
 
 ```{r}
 
@@ -1154,7 +1220,8 @@ mc2_nodes_geo_sf <- st_as_sf(mc2_nodes_geo)
 # Extract coordinates for plotting for geometries
 mc2_nodes_geo_sf <- mc2_nodes_geo_sf %>%
   mutate(Longitude = st_coordinates(st_centroid(geometry))[, 1],
-         Latitude = st_coordinates(st_centroid(geometry))[, 2])
+         Latitude = st_coordinates(st_centroid(geometry))[, 2])%>%
+  filter(vessel =="snappersnatcher7be")
 
 ```
 
