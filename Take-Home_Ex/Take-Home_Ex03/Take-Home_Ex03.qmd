@@ -1,5 +1,5 @@
 ---
-title: "Take Home Exercise 3: WORK IN PROGRESS"
+title: "Take Home Exercise 3"
 author: "Ten Wei Peng"
 date: "May 13, 2024"
 date-modified: "last-modified"
@@ -10,28 +10,144 @@ execute:
   freeze: true
 ---
 
-# Overview
+# **VAST Challenge 2024 : Mini-Challenge 2**
 
+See link below for additional details on this challenge!
+
+<https://vast-challenge.github.io/2024/index.html>
+
+# **Project Brief**
+
+In Oceanus, the routine life of islanders is defined by the movements of commercial fishing vessels, which usually indicate a healthy economy. However, this routine was disrupted when SouthSeafood Express Corp was caught fishing illegally, causing a significant scandal in the fishing community. FishEye International, a non-profit dedicated to combating illegal fishing, is collecting and analyzing data on ship movements and shipping records to understand this disruption better. They have compiled this data into CatchNet: the Oceanus Knowledge Graph. FishEye's analysts need assistance in creating analytical capabilities to make sense of this data and better understand local commercial fishing behavior.
+
+# **Project Objectives**
+
+This study aims to use visual analytics to understand patterns of groups in the knowledge graph. This will endeavour to:
+
+-   **Task 2**- Develop visualizations that illustrate the inappropriate behavior of SouthSeafood Express Corp vessels. How do their movement and catch contents compare to other fishing vessels? When and where did SouthSeafood Express Corp vessels perform their illegal fishing? How many different types of suspicious behaviors are observed? Use visual evidence to justify your conclusions.
+
+-   **Task 3**- To support further Fisheye investigations, develop visual analytics workflows that allow you to discover other vessels engaging in behaviors similar to SouthSeafood Express Corp’s illegal activities? Provide visual evidence of the similarities.
+
+-   **Task 4**- How did fishing activity change after SouthSeafood Express Corp was caught? What new behaviors in the Oceanus commercial fishing community are most suspicious and why?
 
 # 1.Data Preparation
 
 ## 1.1 Loading R Packages
 
+In the code chunk, p_load() and [**pacman**](https://cran.r-project.org/web/packages/pacman/) package is used to load the required packages below:
+
+-   **tidyverse**
+
+    -   **Purpose**: A collection of R packages designed for data science, including `ggplot2`, `dplyr`, `tidyr`, `readr`, `purrr`, `tibble`, `stringr`, and `forcats`. These packages share an underlying design philosophy, grammar, and data structures.
+
+-   **sf**
+
+    -   **Purpose**: Simple Features for R, which provides support for handling spatial vector data. It enables manipulation and analysis of spatial data within the `tidyverse` framework.
+
+-   **lwgeom**
+
+    -   **Purpose**: Provides additional functionality for `sf` objects, leveraging the `liblwgeom` library. This is used for advanced spatial operations like validating geometries.
+
+-   **tmap**
+
+    -   **Purpose**: Thematic maps, which allows for flexible and powerful creation of thematic maps with an intuitive syntax.
+
+-   **units**
+
+    -   **Purpose**: Support for measurement units in R. This package allows for easy and explicit management of physical measurement units in data frames.
+
+-   **maps**
+
+    -   **Purpose**: Provides map data for the creation of maps in R. Useful for adding geographical context to visualizations.
+
+-   **igraph**
+
+    -   **Purpose**: A package for creating and manipulating graphs. It provides tools for network analysis and visualization.
+
+-   **tidygraph**
+
+    -   **Purpose**: Integrates tidy data principles into graph data structures. It allows for the manipulation of graph data using `dplyr` verbs.
+
+-   **ggraph**
+
+    -   **Purpose**: An extension of `ggplot2` for graph visualization. It is used for creating network graphs using the `ggplot2` grammar.
+
+-   **visNetwork**
+
+    -   **Purpose**: Interactive network visualization using the `vis.js` library. It allows for the creation of interactive network graphs.
+
+-   **lubridate**
+
+    -   **Purpose**: Simplifies the process of working with dates and times in R. It provides functions for parsing, manipulating, and doing arithmetic with date-time objects.
+
+-   **jsonlite**
+
+    -   **Purpose**: A robust, high-performance JSON parser and generator for R. It is used for converting between JSON data and R objects.
+
+-   **httr**
+
+    -   **Purpose**: A package for working with URLs and HTTP. It provides tools for making HTTP requests and interacting with web APIs.
+
+-   **viridis**
+
+    -   **Purpose**: Color maps designed to be perceptually uniform. It provides color scales that are particularly useful for heatmaps and other data visualizations.
+
+-   **plotly**
+
+    -   **Purpose**: Interactive web-based plots. It is used to create interactive plots that can be embedded in web pages or viewed in RStudio.
+
+-   **ggrepel**
+
+    -   **Purpose**: Provides geoms for ggplot2 to repel overlapping text labels. This helps in creating more readable plots by preventing text labels from overlapping.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
-pacman::p_load(tidyverse, sf, sp, lwgeom, tmap, units, maps, igraph, tidygraph, ggraph, visNetwork, lubridate, jsonlite, httr,tmap,viridis,plotly)
+pacman::p_load(tidyverse, sf, lwgeom, tmap, units, maps, igraph, tidygraph, ggraph, visNetwork, lubridate, jsonlite, httr,tmap,viridis,plotly, ggrepel)
 
 ```
 
 ## 1.2. Loading the Data
+
+::: panel-tabset
+### Links
+
+**In this section, we will prepare our links dataset**
+
+In this section, we use the`jsonlite` package to read our data in a JSON (JavaScript Object Notation) file named mc2_edited.json and convert it into an R object for further analysis and manipulation.
 
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
 mc2_data <- fromJSON("data/mc2_edited.json")
 ```
-  
+
+We first convert the **links** data from the JSON object into a tibble using `dplyr` and perform following transformations:
+
+-   **Removing Duplicates**: The `distinct()` function is used to ensure that only unique rows are retained in the dataset, removing any duplicate records.
+
+-   **Data Type Conversion**:
+
+    -   `source`, `target`, `type`, `dwell`, and `raw_source` are converted to character strings using `as.character()`.
+
+    -   `time` is converted to a POSIXct date-time object with the format `%Y-%m-%dT%H:%M:%OS` and time zone `UTC` to ensure proper handling of time data.
+
+    -   `date` is converted to a Date object with the format `%Y-%m-%d`.
+
+    -   `ping_date` is derived from the `time` column, also converted to a Date object after transforming it to POSIXct format.
+
+-   **Column Selection**: The `select()` function is used to keep only the relevant columns for further analysis, specifically `type`, `time`, `dwell`, `source`, `target`, `date`, `ping_date`, and `raw_source`.
+
+-   **Aggregation and Filtering**:
+
+    -   **Grouping**: The data is grouped by `source`, `target`, and `type` to prepare for aggregation.
+
+    -   **Summarizing**: The `summarise()` function calculates the number of interactions (weights) between each pair of `source` and `target` for each `type`.
+
+    -   **Filtering**: The `filter()` function removes any rows where the `source` is the same as the `target`, eliminating self-loops in the network.
+
+    -   **Ungrouping**: Finally, the `ungroup()` function ensures that the resulting dataset is no longer grouped, making it easier to work with in subsequent steps.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"   
@@ -45,7 +161,7 @@ mc2_links_prep <- as_tibble(mc2_data$links) %>%
          time =  as.POSIXct(time, format="%Y-%m-%dT%H:%M:%OS", tz="UTC"),
          date = as.Date(as.character(date), format = "%Y-%m-%d"),
          ping_date = as.Date(as.POSIXct(time, format="%Y-%m-%dT%H:%M:%OS", tz="UTC"))) %>%
-  select(type, time, dwell, source, target, date, ping_date,raw_source)
+  select(type, time, dwell, source, target, date, ping_date)
 
 
 mc2_links <- mc2_links_prep%>%
@@ -53,6 +169,32 @@ mc2_links <- mc2_links_prep%>%
   summarise(weights = n(), .groups = 'drop') %>%
   filter(source != target) %>%
   ungroup()
+
+```
+
+### Nodes
+
+**In this section, we will prepare our nodes dataset**
+
+Similarly, we extract the **nodes** data from the JSON object into a tibble and perform the following transformations to the data:
+
+-   **Type Original**: A new column `type_original` is created to store the original values of the `type` column.
+
+-   **Data Type Conversion**: Several columns are converted to appropriate data types:
+
+    -   `id` and `type` are converted to character strings.
+
+    -   `tonnage` and `length_overall` are converted to numeric values after ensuring they are in character format.
+
+    -   `Activities`, `fish_species_present`, `kind`, `flag_country`, `company`, `raw_source`, and `name` are converted to character strings.
+
+    -   `last_edited_by`, `last_edited_date`, and `date_added` are converted to POSIXct date-time objects using the `strptime` function to parse the dates correctly.
+
+-   **Type Classification**: The `type` column is recategorized to a more general "Entity.Vessel" if the original `type` falls into specific vessel categories such as "Entity.Vessel.CargoVessel," "Entity.Vessel.Ferry.Cargo," "Entity.Vessel.FishingVessel," or "Entity.Vessel.Other." If the `type` does not match these categories, it remains unchanged.
+
+-   **Column Selection**: The final step is selecting relevant columns for further analysis. The selected columns include `id`, `type`, `type_original`, `namee`, `company`, `flag_country`, `Activities`, `tonnage`, `length_overall`, `raw_source`, `fish_species_present`, and `kind`.
+
+```{r}
 
 # Convert nodes to tibble, modify variable types, and select required columns
 mc2_nodes <- as_tibble(mc2_data$nodes) %>%
@@ -77,18 +219,38 @@ mc2_nodes <- as_tibble(mc2_data$nodes) %>%
     last_edited_date = as.POSIXct(strptime(as.character(last_edited_date), format = "%Y-%m-%dT%H:%M:%OS")),
     date_added = as.POSIXct(strptime(as.character(date_added), format = "%Y-%m-%dT%H:%M:%OS"))
   ) %>%
-  select(id, type,type_original, namee, company, flag_country, Activities, tonnage, length_overall, raw_source, fish_species_present, kind)
+  select(id, type,type_original, namee, company, flag_country, Activities, tonnage, length_overall, fish_species_present, kind)
 
 
 ```
+
+::: callout-note
+We save our processed data into .rds data format files using the write_rds() of readr package. The output file is saved in rds sub-folder. We do this to reduce the loading time and more importantly, we can avoid uploading the large raw files onto GitHub.
+:::
+
+```{r}
+write_rds(mc2_links_prep, "data/rds/mc2_links_prep.rds")
+mc2_links_prep <- read_rds("data/rds/mc2_links_prep.rds")
+
+write_rds(mc2_links, "data/rds/mc2_links.rds")
+mc2_links <- read_rds("data/rds/mc2_links.rds")
+
+write_rds(mc2_nodes, "data/rds/mc2_nodes.rds")
+mc2_nodes <- read_rds("data/rds/mc2_nodes.rds")
+
+```
+:::
 
 ## 1.3. Data Cleaning
 
 ::: panel-tabset
 ### Links
+
+We discovered that the columns "type," "source," and "target" are complete, containing no missing values. Conversely, the columns "time," "dwell," "date," and "ping_date" exhibit numerous missing values. This outcome is anticipated since these columns exclusively hold data for specific categories.
+
 ```{r}
 # Check for columns with missing values
-colSums(is.na(mc2_links))
+colSums(is.na(mc2_links_prep))
 ```
 
 ```{r}
@@ -98,8 +260,7 @@ summary(mc2_links_prep)
 
 ```
 
-
-
+Next, we ensure there are no duplicated rows
 
 ```{r}
 #| code-fold: true
@@ -107,14 +268,7 @@ summary(mc2_links_prep)
 mc2_links[duplicated(mc2_links),]
 ```
 
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code" 
-glimpse(mc2_links)
-```
-
-
+Let's try to understand how our links data is categorized into. It seems there are three categories of data as shown below.
 
 ```{r}
 #| eval: false
@@ -137,15 +291,9 @@ count_unique_categories <- function(data, column_name) {
 }
 ```
 
-```{r}
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show the code" 
-count_unique_categories(mc2_links, 'type') 
-```
-
-
 ### Nodes
+
+Let's take a look into our nodes dataframe.
 
 ```{r}
 #| code-fold: true
@@ -154,6 +302,7 @@ glimpse(mc2_nodes)
 
 ```
 
+Again, it's hard to make sense if these missing values are actually important due ot the nature of the data. We shall handle it as it goes. However, the main columns we are interested in id and type are not missing any data.
 
 ```{r}
 #| code-fold: true
@@ -162,7 +311,7 @@ glimpse(mc2_nodes)
 colSums(is.na(mc2_nodes))
 ```
 
-
+There does not seem to be any whole duplicate rows.
 
 ```{r}
 #| code-fold: true
@@ -170,6 +319,7 @@ colSums(is.na(mc2_nodes))
 mc2_nodes[duplicated(mc2_nodes),]
 ```
 
+It seems we have many types of nodes even after grouping more of the Vessel types into our generic "Entity.Vessel". It seems "Entity.Commodity.Fish",'Entity.Vessel', 'Entity.Location.Point', 'Entity.Location.City', 'Entity.Location.Region' will be important for us.
 
 ```{r}
 #| eval: false
@@ -185,17 +335,21 @@ print(unique_type)
 #| code-summary: "Show the code" 
 count_unique_categories(mc2_nodes, 'type') 
 count_unique_categories(mc2_nodes, 'flag_country') 
-count_unique_categories(mc2_nodes, 'company') 
 count_unique_categories(mc2_nodes, 'kind') 
 
 ```
+
+There are 100 companies found in our dataset
+
 ```{r}
 count_unique_companies <- length(unique(mc2_nodes$company))
 count_unique_companies
 ```
 
-
 ### Geographical Information
+
+The code below snippet employs the sf package to read and manipulate GeoJSON data. It uses `st_read()` to import the GeoJSON file and renames the column "Name" to "id" using rename() from the dplyr package.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -204,6 +358,8 @@ geojson_file <- "data/Oceanus Information/Oceanus Geography.geojson"
 geo_data <- st_read(geojson_file) %>%
   rename(id = Name)
 ```
+
+Using `tmap` we create a basic plot of our locations we are interested in.
 
 ```{r}
 #| code-fold: true
@@ -221,18 +377,32 @@ tm_shape(geo_data) +
   tm_text(text = "id", size = 0.6, col = "black") +  # Add labels to the locations
   tm_layout(legend.position = c("left", "bottom"))
 ```
-
 :::
 
-
 ## Task 2 (part 1) : EDA
-
 
 ::: panel-tabset
 ### Filter and Prepare Data
 
 #### Extracting Commodity Fish Data
-Let's derive a function to retrieve the unique fish species found in specific regions.
+
+This code segment focuses on filtering and preparing data for exploratory data analysis (EDA), particularly concerning commodity fish species in specific regions. It utilizes several packages within the tidyverse ecosystem.
+
+Firstly, the `dplyr` package is employed for data manipulation tasks. Two main operations are performed:
+
+1.  **Filtering Commodity Fish Data:** The `filter()` function is used to extract rows from the `mc2_nodes` dataframe where the type is "Entity.Commodity.Fish". This isolates data relevant to commodity fish species.
+
+2.  **Extracting Fish Species Data:** Another subset of data is extracted for locations ("Entity.Location.Region" type) and processed to extract individual fish species. This involves several steps:
+
+    -   The `filter()` function extracts rows where the type is "Entity.Location.Region".
+
+    -   The `mutate()` function modifies the data, removing unnecessary characters from the "fish_species_present" column and splitting the string into individual fish species using regular expressions (`str_remove_all()` and `str_split()`).
+
+    -   The `unnest()` function expands the list of fish species.
+
+    -   Further data cleaning is done with `mutate()` and `rename()` functions to ensure consistency and readability.
+
+Following data preparation, a function named `get_commodity_fish_ids()` is defined. This function retrieves commodity fish IDs for specific regions. It takes optional arguments for regions and utilizes the preprocessed `fishspecies_expanded` dataframe to filter and extract relevant fish species IDs based on specified regions.
 
 ```{r}
 #| code-fold: true
@@ -264,9 +434,9 @@ get_commodity_fish_ids <- function(..., regions = NULL) {
 
 ```
 
+#### Preparing Harbor Report Data.
 
-#### Preparing Harbor Report Data
-Let's derive a function to retrieve the unique fish species found in specific regions.
+This code filters data from mc2_links_prep to isolate harbor report events involving particular vessels ("snappersnatcher7be" and "roachrobberdb6"). It renames columns for clarity and selects only relevant columns, focusing on the city, vessel, event type, and reporting date. Overall, it streamlines the extraction and organization of data crucial for analyzing harbor activities related to specific vessels.
 
 ```{r}
 harboureport_culprit<- mc2_links_prep %>%
@@ -278,17 +448,13 @@ harboureport_culprit<- mc2_links_prep %>%
   select(city, vessel, type, harboreporting_date)
 ```
 
-
-
-####. Processing Transaction Data
+#### Processing Transaction Data
 
 Retrieve and process transaction data to identify suspicious transactions.
-
 
 Let's retrieve the `Transaction` data by applying the filter `type == "Event.Transaction"` for our links data
 
 We then perform a self-join on the transaction dataset on `source` column to get the respective `city` and `fish` column for each cargo delivery, filtering for only the two cities we observed earlier 'City of Paackland', 'City of Lomark' which `snappersnatcher7b` frequented.
-
 
 ```{r}
 # Retrieve and process transaction data
@@ -304,7 +470,9 @@ transactions <- mc2_links_prep %>%
   inner_join(commodityfish, by = c("fish" = "id"))
 
 ```
+
 No duplicated transaction records were found after the self-join
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -313,6 +481,8 @@ duplicated_transactions
 ```
 
 #### Filtering and Preparing Nodes and Links
+
+This code segment filters and prepares data from mc2_nodes and mc2_links dataframes, focusing on specific types of entities such as vessels, points, cities, and regions, while excluding vessels not associated with "SouthSeafood Express Corp". It further filters mc2_links data to retain only transport events, transactions, and harbor reports. Then, it extracts relevant node IDs and filters edges to ensure consistency, removing any missing nodes from the filtered links. Overall, this process ensures that the data is tailored for subsequent analysis, particularly in the context of transportation and harbor activities involving specific entities.
 
 ```{r}
 #| code-fold: true
@@ -342,7 +512,14 @@ if(length(missing_nodes) > 0) {
 }
 
 ```
+
 ### Construct the Graph
+
+This code block utilizes the `tidygraph` package to construct a graph (`mc2_graph`) with filtered nodes and edges from the `mc2_nodes_suspect` and `mc2_links_suspect` dataframes, respectively. Here's a brief summary:
+
+1.  **Creating Graph:** The `tbl_graph()` function from `tidygraph` constructs a graph using the filtered nodes and edges, specifying it as a directed graph (`directed = TRUE`).
+
+2.  **Centrality Metrics:** Three centrality metrics—betweenness centrality, closeness centrality, and degree centrality—are calculated for each node using the `centrality_betweenness()`, `centrality_closeness()`, and `centrality_degree()` functions, respectively.
 
 ```{r}
 #| code-fold: true
@@ -354,8 +531,7 @@ mc2_graph <- tbl_graph(nodes = mc2_nodes_suspect, edges = mc2_links_suspect, dir
          degree_centrality = centrality_degree())
 ```
 
-
-### Visualisation
+This code block filters the `mc2_graph` to include only nodes with edges, then visualizes the filtered graph using the `ggraph` package. The size of nodes corresponds to their degree centrality, and their color indicates their type. Node labels are added with `geom_node_text()`, and colors are customized for different node types. The visualization provides insights into the activities of SouthSeafood Express Corp, with a focus on different types of entities and their centrality within the network.
 
 ```{r}
 #| code-fold: true
@@ -384,10 +560,9 @@ mc2_graph_with_edges %>%
        size = "Degree Centrality")
 ```
 
-::: 
-
-
 ### Interactive VIsualisation
+
+This code aggregates edge data from `mc2_links_suspect`, filters out isolated nodes, and prepares the data for visualization. It utilizes the `visNetwork` function from the `visNetwork` package to create an interactive network visualization. Nodes and edges are represented based on the filtered data, with options for selecting nodes by type and highlighting nearest nodes. The resulting visualization offers insights into the network structure and relationships among different entities involved in the analyzed activities.
 
 ```{r}
 #| code-fold: true
@@ -432,32 +607,22 @@ visNetwork(mc2_nodes_suspect, mc2_links_suspect) %>%
 
 
 ```
-
-
-
-
-
-
-
-
+:::
 
 ## Task 2 (part 2) : Deep Investigations into "snappersnatcher7b"
 
-
 ::: panel-tabset
-
-
 ### 1. Fish Species in Ghoti Preserve
+
 From the EDA/ visualisation earlier, it seems `"snappersnatcher7be"` frequents:
 
-- Locations: `"Nav1"`, `"Nav2"` which is extremely near `"Ghoti Preserve"`
+-   Locations: `"Nav1"`, `"Nav2"` which is extremely near `"Ghoti Preserve"`
 
-- Region: `"Wrasse Beds"` , `"Ghoti Preserve"`, `"Cod Table"`
+-   Region: `"Wrasse Beds"` , `"Ghoti Preserve"`, `"Cod Table"`
 
-- City: `City of Paackland` and `City of Lomark`
+-   City: `City of Paackland` and `City of Lomark`
 
-
-Hence, let's dentify the fish species commonly found in the "Ghoti Preserve" region.
+Hence, let's identify the fish species commonly found in the "Ghoti Preserve" region.
 
 In `"Ghoti Preserve"`, these are the fish species that commonly found. The names are as below:
 
@@ -474,16 +639,13 @@ unique_fish_species_ghoti <- fishspecies_expanded %>%
 print(unique_fish_species_ghoti)
 ```
 
-
 ### 2. Suspicious Transactions
 
 Merge the transactions with HarborReport data to identify relevant suspicious transactions.
 
-
 Next, we proceed with the HarborReport data by applying filter type == `Event.HarborReport` to our links dataset and retrieve only`snappersnatcher7b`'s records then merge with transactions dataset to filter out relevant suspicious transactions given the fact that the harbor reports are likely to be a few days after the transaction.
 
 Note that, this is a rough merge on city, hence we are just narrowing down and end up with likely pairs of transactions with snappersnatcher7be's harbor reporting to guess its cargo
-
 
 ```{r}
 #| code-fold: true
@@ -509,7 +671,13 @@ filtered_transactions <- merged_data %>%
 
 ```
 
+"Cod/Gadus n.specificatae" was filtered out as it is a commonly found in legal fishing areas. Then, we merged this filtered data with another dataframe named fishspecies_expanded based on a common column, namely "namee" and "Fish_Species" respectively.Finally, we extract unique regions from the merged data and prints them.
+
+The output displays the unique regions found in the merged dataset, which are "Ghoti Preserve," "Nemo Reef," and "Wrasse Beds." These are the likely fishing grounds the vessels should be found.
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
 # Filter out entries where namee is not "Cod/Gadus n.specificatae"
 filtered_transactions <- filtered_transactions %>%
   filter(namee != "Cod/Gadus n.specificatae")
@@ -521,6 +689,10 @@ unique_regions
 
 ```
 
+We generate a timeline plot illustrating suspicious transactions and harbor reports associated with the vessel "snappersnatcher7be," showcasing the relationship between transaction dates, cargo types, vessels, and cities involved.
+
+It's likely to have made transactions of cargo "Wrasse/Labridae n.refert" within thisdate range shown.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -529,7 +701,7 @@ unique_regions
 ggplot(filtered_transactions)  +
   geom_segment(aes(x = transaction_date, xend = harboreporting_date, y = namee, yend = namee, color = vessel), size = 1.5) +
   geom_point(aes(x = transaction_date, y = namee, color = vessel, shape = city), size = 3) +
-  labs(title = "Suspicious Transactions and Harbor Reports for roachrobberdb6", x = "Date", y = "Cargo Type") +
+  labs(title = "Suspicious Transactions and Harbor Reports for snappersnatcher7be", x = "Date", y = "Cargo Type") +
   theme_minimal() +
   scale_color_discrete(name = "Vessel") +
   scale_shape_discrete(name = "City") +  # Add legend for city
@@ -540,15 +712,13 @@ ggplot(filtered_transactions)  +
 
 ```
 
-
 ### 3. Suspicious Findings
 
 From our observations, "snappersnatcher7be" is likely carrying the following cargo:
 
-- "Cod/Gadus n.specificatae" around 20th March and
+-   "Cod/Gadus n.specificatae" around 20th March and
 
-- "Wrasse/Labridae n.refert" around 8th May
-
+-   "Wrasse/Labridae n.refert" around 8th May
 
 ```{r}
 #| code-fold: true
@@ -558,14 +728,13 @@ print(unique(filtered_transactions$namee))
 
 Additionally, we found its transportation activities suspicious due to its frequent visits to "Ghoti Preserve":
 
-- `"Nav 1"`: 17 occurences
-- `"Nav 2"`: 7 occurences
+-   `"Nav 1"`: 17 occurences
+-   `"Nav 2"`: 7 occurences
 
 For legitimate occurrences related to "Wrasse/Labridae n.refert", there's fewer:
 
-- `"Nav C"`: 10 occurences
-- `"Wrasse Beds"`: 3 occurences
-
+-   `"Nav C"`: 10 occurences
+-   `"Wrasse Beds"`: 3 occurences
 
 ```{r}
 #| code-fold: true
@@ -582,8 +751,10 @@ count_unique_categories(transponder_culprit, 'source')
 
 ```
 
+#### Bar Plot for Suspicious and Legitimate Transportation Activities
 
-Bar Plot for Suspicious and Legitimate Transportation Activities
+We plotted a bar plot illustrating transportation activities associated with the entity "snappersnatcher7be," distinguishing between suspicious and legitimate locations as described above.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -615,8 +786,9 @@ ggplot(location_counts, aes(x = Occurrences, y = Location, fill = Type)) +
   )
 ```
 
+#### Geographical Plot for Suspicious and Legitimate Transportation Activities
 
-3. Geographical Plot 
+Below, is the geographical representation of what we found to be legitmate and suspicious locations for the vessel.
 
 ```{r}
 #| code-fold: true
@@ -665,30 +837,18 @@ ggplot() +
         axis.text = element_text(size = 10),  # Enlarge axis text
         axis.title = element_text(size = 12))  # Enlarge axis title
 ```
-
-
-
-
-
-
 :::
-
-
-
 
 ## Task 2 (part 3) : Deep Investigations into "roachrobberdb6"
 
 ::: panel-tabset
-
 ### 1. Suspicious Transactions
 
 Merge the transactions with HarborReport data to identify relevant suspicious transactions.
 
+Next, we proceed with the HarborReport data by applying filter type == `Event.HarborReport` to our links dataset and retrieve only`roachrobberdb6`'s records then merge with transactions dataset to filter out relevant suspicious transactions given the fact that the harbor reports are likely to be a few days after the transaction.
 
-Next, we proceed with the HarborReport data by applying filter type == `Event.HarborReport` to our links dataset and retrieve only`snappersnatcher7b`'s records then merge with transactions dataset to filter out relevant suspicious transactions given the fact that the harbor reports are likely to be a few days after the transaction.
-
-Note that, this is a rough merge on city, hence we are just narrowing down and end up with likely pairs of transactions with snappersnatcher7be's harbor reporting to guess its cargo
-
+Note that, this is a rough merge on city, hence we are just narrowing down and end up with likely pairs of transactions with roachrobberdb6's harbor reporting to guess its cargo
 
 ```{r}
 #| code-fold: true
@@ -726,6 +886,7 @@ unique_regions
 
 ```
 
+We generate a timeline plot illustrating suspicious transactions and harbor reports associated with the vessel "roachrobberdb6," showcasing the relationship between transaction dates, cargo types, vessels, and cities involved.
 
 ```{r}
 #| code-fold: true
@@ -745,15 +906,13 @@ ggplot(filtered_transactions1) +
   )
 ```
 
-
 ### 2. No Suspicious Findings
 
-From our observations, "roachrobberdb6" is likely carrying the following cargo:
+From our observations previously, "roachrobberdb6" is likely carrying the following cargo:
 
-- "Wrasse/Labridae n.refert" around February and April
+-   "Wrasse/Labridae n.refert" around February and April
 
-- "Harland/Piscis sapidum" in April
-
+-   "Harland/Piscis sapidum" in April
 
 ```{r}
 #| code-fold: true
@@ -761,12 +920,10 @@ From our observations, "roachrobberdb6" is likely carrying the following cargo:
 print(unique(filtered_transactions1$namee))
 ```
 
-
 We did not manage to find its fishing activities suspicious between the period however for the date range. It is likely not to be suspicious.
 
-- `"Nav C"`: 38 occurences
-- `"Wrasse Beds"`: 42 occurences
-
+-   `"Nav C"`: 38 occurences
+-   `"Wrasse Beds"`: 42 occurences
 
 ```{r}
 #| code-fold: true
@@ -783,8 +940,10 @@ count_unique_categories(transponder_culprit1, 'source')
 
 ```
 
-
 #### Bar Plot for Suspicious and Legitimate Transportation Activities
+
+We plotted a bar plot illustrating transportation activities associated with the entity "roachrobberdb6," distinguishing between suspicious and legitimate locations as described above.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -816,8 +975,10 @@ ggplot(location_counts1, aes(x = Occurrences, y = Location, fill = Type)) +
   )
 ```
 
-
 #### Geographical Visualisation
+
+Below, is the geographical representation of what we found to be legitmate and suspicious locations for the vessel.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code" 
@@ -867,178 +1028,13 @@ ggplot() +
         axis.text = element_text(size = 10),  # Enlarge axis text
         axis.title = element_text(size = 12))  # Enlarge axis title
 ```
-
-
 :::
 
+## Task 2 (part 4) : Suspicious Trajectories
 
+In this section, we conduct an analysis of vessel trajectories to identify suspicious activities, particularly focusing on the operations of SouthSeafood Express Corp.
 
-
-## Task 2 (part 4) : Transshipment Analysis
-
-
-
-### 1. Extract  Movement Data
-First, we extract vessel movement data from the mc2_links_prep dataset. Specifically, we are filtering the data to retain only the transponder ping events, which represent instances of vessel movement. Each ping event is associated with a location, vessel ID, and timestamp.
-
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"   
-# Extract transponder ping data for vessel movements
-transponder_pings <- mc2_links_prep %>%
-  filter(type == "Event.TransportEvent.TransponderPing") %>%
-  rename(location = source, vessel = target, ping_date = ping_date) %>%
-  mutate(ping_id = row_number())  # Add a unique identifier for each row
-
-```
-
-
-### 2. Identify Vessel Pairs at the Same Location and Time
-
-Next, we're identifying pairs of vessels that are at the same location at the same time. This is achieved through a self-join operation on the transponder ping data. After ensuring that the same vessel is not paired with itself, we select distinct pairs to avoid duplicates.
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"   
-# Perform a self-join to find pairs of vessels at the same location and time
-vessel_pairs <- transponder_pings %>%
-  inner_join(transponder_pings, by = c("location", "ping_date")) %>%
-  filter(ping_id.x < ping_id.y) %>%  # Ensure we do not pair the same id 
-  filter(vessel.x != vessel.y) %>%  # Ensure we do not pair the same vessel
-  
-  select(
-    vessel1 = vessel.x,
-    vessel2 = vessel.y,
-    location,
-    ping_date
-  )
-```
-
-
-### 3. Aggregate and Analyze Transshipments
-
-In this section, we aggregate and analyze the transshipment data. We aggregate the count of vessel pairs by date. Then, we join the vessel pairs with company information to identify the companies involved in transshipments. Finally, we group the transshipment data by company pairs and date to analyze the frequency of transshipments.
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"   
-# Aggregate the count of vessel pairs by date
-transshipments_count <- vessel_pairs %>%
-  mutate(date = as.Date(ping_date)) %>%
-  group_by(date) %>%
-  summarise(transshipments = n())
-
-# Join vessel_pairs with mc2_nodes to get the company information
-vessel_pairs_with_company <- vessel_pairs %>%
-  left_join(mc2_nodes %>% select(id, company), by = c("vessel1" = "id")) %>%
-  rename(company1 = company) %>%
-  left_join(mc2_nodes %>% select(id, company), by = c("vessel2" = "id")) %>%
-  rename(company2 = company)
-
-# Group vessel pairs by company
-transshipments_by_company <- vessel_pairs_with_company %>%
-  filter(company1 == company2) %>%
-  mutate(date = as.Date(ping_date)) %>%  # Ensure date column is present
-  mutate(transshipment = ifelse(duplicated(cbind(company1, company2, date)) | 
-                                duplicated(cbind(company2, company1, date)), 0, 1)) %>%  # Set transshipments to 0 if duplicated
-  group_by(company1, company2, date) %>%
-  summarise(transshipments = sum(transshipment)) %>%
-  ungroup()
-
-# Filter and summarise transshipments for vessel pairs belonging to the same company
-same_company_transshipments <- transshipments_by_company %>%
-  group_by(company1, company2) %>%
-  summarise(transshipments = sum(transshipments)) %>%
-  ungroup()
-
-```
-
-### 4. Visualize Transshipment Data for Specific Company
-
-Finally, we're visualizing the transshipment data for a specific company, "SouthSeafood Express Corp". This plot shows the timeline of transshipments for vessel pairs belonging to this company.
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"   
-# Filter vessel pairs belonging to the same company "SouthSeafood Express Corp"
-SouthSeafood_transshipments <- transshipments_by_company %>%
-  filter(company1 == "SouthSeafood Express Corp" & company2 == "SouthSeafood Express Corp")
-```
-
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"   
-# Create a plot
-ggplot(SouthSeafood_transshipments, aes(x = date, y = transshipments)) +
-  geom_line() +
-  geom_point() +
-  labs(title = "Transshipments for Vessel Pairs of SouthSeafood Express Corp",
-       x = "Date",
-       y = "Transshipments Count") +
-  theme_minimal()
-```
-
-## Task 2 (part 5) : Insights from Visualisations
-
-
-::: callout-note
-**Suspicious Movement and Catch Contents of SouthSeafood Express Corp**
-
--   **Movement Patterns**:
-
-  -   The vessel "snappersnatcher7be" shows frequent visits to suspicious locations such as "Nav 1" (17 occurrences) and "Nav 2" (7 occurrences), which are near "Ghoti Preserve".
-  
-  -   The visualization illustrates a significant number of transshipment events involving vessels associated with "SouthSeafood Express Corp." These events, occurring over a period of time, indicate a pattern of coordinated activities suggestive of illicit practices.The plotted data reveals a consistent trend of transshipment occurrences over time, which deviates significantly from normal maritime operations. The frequency and pattern of these events suggest deliberate efforts to transfer goods between vessels, potentially for illegal purposes such as smuggling or avoiding regulatory oversight.
-
--   **Catch Contents**:
-
-  -   The vessel "snappersnatcher7be" is suspected of carrying cargo such as "Wrasse/Labridae n.refert" which is found only in "Ghoti Preserve" , "Wrasse Beds" and "Nemo Reef." However, our visualisation reveals that it does not venture near "Nemo Reef" and it spends an equal amount of time at "Wrasse Beds" and locations near "Ghoti Preserve"
-  
-:::
-
-
-::: callout-note
-**Timing and Locations of Illegal Fishing Activities for SouthSeafood Express Corp**
-
--   **Timeframe of Illegal Activities**:
-
-  -   Around May 8th, "snappersnatcher7be" is likely involved in suspicious  cargo activities involving "Wrasse/Labridae n.refert". Hence, we suspect it conducted illegal fishing in the month previous.
-  
-
--   **Locations of Illegal Fishing**:
-
-  -   The vessel's frequent visits to "Nav 1" and "Nav 2" suggest these locations are hotspots for illegal activities.
-
-  -   These locations are close to "Ghoti Preserve", a region known for fish species like "Wrasse/Labridae n.refert".
-  
-:::
-
-
-## Task 3 (part 1) :
-
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"   
-transshipments_by_company %>%
-  group_by(company1, company2) %>%
-  summarise(total_transshipments = sum(transshipments)) %>%
-  arrange(desc(total_transshipments)) %>%
-  top_n(10) %>%
-  ggplot(aes(x = reorder(company1, total_transshipments), y = total_transshipments)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
-  labs(title = "Intra-Company Transshipment Activity",
-       x = "Company",
-       y = "Total Transshipments") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  coord_flip()
-
-```
-
-
+To begin, we extract transponder ping data, which provides information on vessel movements. We preprocess this data, assigning numeric values to locations and filtering out irrelevant areas such as Haacklee, Himark, Port Grove, Lomark, Paackland, and South Paackland.
 
 ```{r}
 #| code-fold: true
@@ -1057,7 +1053,13 @@ transponder_pings <- mc2_links_prep %>%
            location == "City of South Paackland" ~ "South Paackland",
            TRUE ~ location  # Keep original value if none of the above conditions are met
          ))
+```
 
+Next, we calculate the start and end times for each vessel's journey, which allows us to determine the duration and locations visited by each vessel.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 # Join with mc2_nodes to get the company information
 transponder_ping_df <- transponder_pings %>%
   inner_join(mc2_nodes %>% select(id, company), by = c("vessel" = "id")) %>% 
@@ -1080,132 +1082,50 @@ data <- data %>% filter(!is.na(end_time))%>% filter(!is.na(company))
 
 # Assign numeric values to locations for plotting purposes 
 data$location_factor <- as.factor(data$location) 
-data$location_num <- as.numeric(data$location_factor) 
+data$location_num <- as.numeric(data$location_factor)
 ```
 
+After preprocessing, we plot the trajectories of two vessels, "snappersnatcher7be" and "roachrobberdb6," using ggplot. In the ggplot visualization, we showcase the vessels' paths over time, along with location labels and customized color coding for each vessel. `ggrepel` was used to ensure that the labels not overlap.
 
 ```{r}
-# Filter data and sort by vessel and date
-filtered_data <- data %>%
-  filter(vessel %in% c("snappersnatcher7be","roachrobberdb6","albacoreangler47d","costasmeraldaac7","kingfishcapturerbe7"))%>%
+#| code-fold: true
+#| code-summary: "Show the code"   
+combined_data <- data %>%
+  filter(vessel %in% c("snappersnatcher7be", "roachrobberdb6")) %>%
   arrange(vessel, date)
 
-# Create the Plotly plot with initial markers and labels
-plot <- plot_ly() %>%
-  add_markers(data = filtered_data, x = ~date, y = ~location_num, color = ~location_factor, 
-              type = 'scatter', mode = 'markers+text', text = ~location, textposition = 'top center', hoverinfo = 'text')
-
-# Add lines for each vessel and set initial visibility to FALSE
-vessel_list <- unique(filtered_data$vessel)
-visibility_list <- lapply(vessel_list, function(v) FALSE)
-
-for (v in vessel_list) {
-  vessel_data <- filtered_data %>% filter(vessel == v)
-  plot <- plot %>%
-    add_lines(data = vessel_data, x = ~date, y = ~location_num, 
-              name = v, visible = FALSE, hoverinfo = 'none')
-}
-
-# Create dropdown buttons for each vessel
-buttons <- lapply(seq_along(vessel_list), function(i) {
-  visibility <- c(TRUE, rep(FALSE, length(vessel_list)))
-  visibility[i + 1] <- TRUE  # Add 1 because the first element is for the markers
-  list(
-    method = "update",
-    args = list(
-      list(visible = visibility),
-      list(title = paste("Path of", vessel_list[i], "Over Time"))
-    ),
-    label = vessel_list[i]
-  )
-})
-
-# Add layout settings with dropdown menu
-plot <- plot %>%
-  layout(title = "Path of Vessel Locations Over Time",
-         xaxis = list(title = "Time"),
-         yaxis = list(title = "Location"),
-         hovermode = 'closest',
-         updatemenus = list(
-           list(
-             type = "dropdown",
-             direction = "down",
-             buttons = buttons,
-             showactive = TRUE
-           )
-         )
-  )
-
-plot
-```
-```{r}
-test <-  unique(filtered_data$vessel)
-test
-
+# Create a line plot of vessel location over time
+ggplot(combined_data, aes(x = date, y = location_num, color = vessel)) +
+  geom_line() +
+  geom_point(size = 2) +  # Add points for each location
+  geom_text_repel(aes(label = location), size = 3) +  # Add labels with repelling
+  labs(title = "SouthSeafood Express Corp Vessel's  Trajectories Over Time",
+       x = "Time", y = "Location", color = "Vessel") +
+  theme_minimal() +
+  scale_color_manual(values = c("snappersnatcher7be" = "blue", "roachrobberdb6" = "green"))  # Define custom colors for each vessel
 ```
 
+::: callout-note
+**Important Observations**
 
+-   Through this visualization, we discerned a notable trend: both vessels frequently intersect at Nav3. This observation suggests a potential area for further investigation into the activities of SouthSeafood Express Corp. The consistent intersection of these vessels raises questions about the nature of their interactions at this location. This finding prompts us to delve deeper into the activities and operations of SouthSeafood Express Corp, as it may indicate coordinated movements or potential transshipment activities between the vessels. Further scrutiny of these intersecting points could uncover crucial insights into the company's operational strategies and shed light on any illicit activities that may be occurring.
+:::
 
-```{r}
-# Ensure data is arranged
-filtered_data <- data %>%
-  arrange(vessel, date)
+In the following section, we utilize several packages to prepare and process the data. We primarily use the `sf` package for handling spatial data, the `dplyr` package for data manipulation, and the `ggplot2` package for data visualization. Additionally, we employ the `tmap` package to create interactive thematic maps.
 
-# Create the Plotly plot with initial markers and labels
-plot <- plot_ly() %>%
-  add_markers(data = filtered_data, x = ~date, y = ~location_num, color = ~location_factor, 
-              type = 'scatter', mode = 'markers+text', text = ~location, textposition = 'top center', hoverinfo = 'text')
+Here's a summary of the technical steps:
 
-# Add lines for each vessel and set initial visibility to FALSE
-vessel_list <- unique(filtered_data$vessel)
-for (v in vessel_list) {
-  vessel_data <- filtered_data[filtered_data$vessel == v, ]
-  plot <- plot %>%
-    add_lines(data = vessel_data, x = ~date, y = ~location_num, 
-              name = v, visible = FALSE, hoverinfo = 'none')
-}
+**Data Validation and Joining**: We validate the geometries of the geographical data and join the node data with the geographical data based on the location identifier.
 
-# Create dropdown buttons for each company
-buttons <- lapply(unique(filtered_data$company), function(company) {
-  company_vessels <- filtered_data$vessel[filtered_data$company == company]
-  visibility <- sapply(vessel_list, function(v) v %in% company_vessels)
-  visibility <- c(TRUE, visibility)  # Ensure markers are always visible
-  list(
-    method = "update",
-    args = list(
-      list(visible = visibility),
-      list(title = paste("Path of Vessels in Company", company, "Over Time"))
-    ),
-    label = company
-  )
-})
+**Conversion to sf Object**: We convert the resulting data frame into an sf object using the st_as_sf function from the sf package.
 
-# Add layout settings with dropdown menu
-plot <- plot %>%
-  layout(title = "Path of Vessel Locations Over Time",
-         xaxis = list(title = "Time"),
-         yaxis = list(title = "Location"),
-         hovermode = 'closest',
-         updatemenus = list(
-           list(
-             type = "dropdown",
-             direction = "down",
-             buttons = buttons
-           )
-         )
-  )
+**Coordinates Extraction**: We extract coordinates for plotting the trajectories of the vessels "snappersnatcher7be" and "roachrobberdb6" separately using the st_coordinates function.
 
-plot
-
-
-
-```
-
-
-
+**Data Combination**: We combine the data for both vessels into a single data frame using the bind_rows function from the dplyr package.
 
 ```{r}
-
+#| code-fold: true
+#| code-summary: "Show the code"
 # Validate geometries
 geo_data <- geo_data %>%
   st_make_valid()
@@ -1218,70 +1138,352 @@ mc2_nodes_geo <- data %>%
 mc2_nodes_geo_sf <- st_as_sf(mc2_nodes_geo)
 
 # Extract coordinates for plotting for geometries
-mc2_nodes_geo_sf <- mc2_nodes_geo_sf %>%
+snappersnatcher7be_sf <- mc2_nodes_geo_sf %>%
   mutate(Longitude = st_coordinates(st_centroid(geometry))[, 1],
-         Latitude = st_coordinates(st_centroid(geometry))[, 2])%>%
-  filter(vessel =="snappersnatcher7be")
+         Latitude = st_coordinates(st_centroid(geometry))[, 2]) %>%
+  filter(vessel == "snappersnatcher7be")
 
+roachrobberdb6_sf <- mc2_nodes_geo_sf %>%
+  mutate(Longitude = st_coordinates(st_centroid(geometry))[, 1],
+         Latitude = st_coordinates(st_centroid(geometry))[, 2]) %>%
+  filter(vessel == "roachrobberdb6")
+
+# Combine data for both vessels
+combined_sf <- bind_rows(snappersnatcher7be_sf, roachrobberdb6_sf)
 ```
 
+**Tmap Mode Setting**: We set the `tmap` mode to "plot" using the tmap_mode function from the tmap package.
 
+**Map Creation with tmap**: We create a thematic map using tmap functions such as tm_shape, tm_borders, and tm_symbols. This map includes borders around each shape, symbols for nodes, and a watercolor style background.
+
+**Plot Creation with ggplot**: We create a ggplot with the geom_sf function to plot the geographical data, geom_path to plot the vessel trajectories, and geom_text to add labels to the plot. We also customize the plot aesthetics such as colors and legend titles using functions like scale_color_manual and labs.
 
 ```{r}
-
+#| code-fold: true
+#| code-summary: "Show the code"
+# Set tmap mode
 tmap_mode("plot")
 
 geo_data <- st_as_sf(geo_data, coords = c("Longitude", "Latitude"), crs = 4326)
 
-# Add columns to mark origin and destination
-mc2_nodes_geo_sf_start_ <- mc2_nodes_geo_sf %>%
-  mutate(point_type = case_when(
-    row_number() == 1 ~ "origin",
-    row_number() == n() ~ "destination",
-    TRUE ~ "middle"
-  ))
 
-# Create the tmap with labels
-tm_shape(geo_data) +
-  tm_borders(col = "black", alpha = 0.5) +  # Optional: borders around each shape
-  tm_symbols(col = "red", size = 0.2) +  # Plot nodes
-  tm_layout(main.title = "Vessel Trajectories",
-            main.title.size = 0.8) +
-  tmap_style("watercolor")  # Using the watercolor style for background
-
+# Create the ggplot with the legend for vessels
 ggplot() +
-  geom_sf(data = geo_data, aes(geometry = geometry), color = "red", size = 1) +  # Plot nodes
-  geom_path(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude, group = vessel), color = "blue", size = 1) +  # Plot paths
-  geom_text(data = mc2_nodes_geo_sf, aes(x = Longitude, y = Latitude, label = location), size = 3, vjust = -1) +  # Add labels
-  scale_color_manual(values = c("origin" = "green", "destination" = "red", "middle" = "blue")) +  # Colors for different points
-  labs(x = "Longitude", y = "Latitude", title = "Vessel Trajectories") +
+  geom_sf(data = geo_data, aes(geometry = geometry), color = "black", size = 0.5, fill = NA) +  # Plot borders
+  geom_point(data = combined_sf, aes(x = Longitude, y = Latitude, color = vessel), size = 3) +  # Plot points
+  geom_path(data = combined_sf, aes(x = Longitude, y = Latitude, color = vessel, group = vessel), size = 1) +  # Plot paths
+  geom_text(data = combined_sf, aes(x = Longitude, y = Latitude, label = location), size = 3, vjust = -1) +  # Add labels
+  scale_color_manual(values = c("snappersnatcher7be" = "green", "roachrobberdb6" = "blue")) +  # Colors for different vessels
+  labs(x = "Longitude", y = "Latitude", title = "SouthSeafood Express Corp Vessel Trajectories", color = "Vessel") +  # Add legend title
+  coord_sf() +  # Use coord_sf for spatial data
+  theme_minimal()  # Mi
+```
+
+## Task 2 (part 5) : Insights from Visualisations
+
+::: callout-note
+**Suspicious Movement and Catch Contents of SouthSeafood Express Corp**
+
+-   **Movement Patterns**:
+
+-   The vessel "snappersnatcher7be" shows frequent visits to suspicious locations such as "Nav 1" (17 occurrences) and "Nav 2" (7 occurrences), which are near "Ghoti Preserve".
+
+-   The visualization illustrates a significant number of transshipment events involving vessels associated with "SouthSeafood Express Corp." These events, occurring over a period of time, indicate a pattern of coordinated activities suggestive of illicit practices.The plotted data reveals a consistent trend of transshipment occurrences over time, which deviates significantly from normal maritime operations. The frequency and pattern of these events suggest deliberate efforts to transfer goods between vessels, potentially for illegal purposes such as smuggling or avoiding regulatory oversight.
+
+-   **Catch Contents**:
+
+-   The vessel "snappersnatcher7be" is suspected of carrying cargo such as "Wrasse/Labridae n.refert" which is found only in "Ghoti Preserve" , "Wrasse Beds" and "Nemo Reef." However, our visualisation reveals that it does not venture near "Nemo Reef" and it spends an equal amount of time at "Wrasse Beds" and locations near "Ghoti Preserve"
+:::
+
+::: callout-note
+**Timing and Locations of Illegal Fishing Activities for SouthSeafood Express Corp**
+
+-   **Timeframe of Illegal Activities**:
+
+-   Around May 8th, "snappersnatcher7be" is likely involved in suspicious cargo activities involving "Wrasse/Labridae n.refert". Hence, we suspect it conducted illegal fishing in the month previous.
+
+-   **Locations of Illegal Fishing**:
+
+-   The vessel's frequent visits to "Nav 1" and "Nav 2" suggest these locations are hotspots for illegal activities.
+
+-   These locations are close to "Ghoti Preserve", a region known for fish species like "Wrasse/Labridae n.refert".
+:::
+
+::: callout-note
+**Suspicious vessel tragejctories found likely to indicate transshipping**
+
+-   The trajectories of both vessels belonging to SouthSeafood Express Corp appear to intersect at specific points in time, particularly at Nav C. This presents a compelling indication of transshipment taking place.
+:::
+
+## Task 3:
+
+In the previous analysis, we conducted an assessment of transshipment activities, which led us to identify SouthSeafood Express Corp as suspicious. This finding suggested a potential involvement in illegal fishing activities and we decided to analyze if other companies exhibit the same patterns.
+
+#### 1. Defining Transshipment
+
+-   **Transshipment** refers to the transfer of cargo from one vessel to another while at sea. For our analysis, we define a transshipment event as occurring when multiple vessels from the same company are present at the same location on the same date, excluding cities
+
+#### 2. Process
+
+-   **Identified transshipment** points by grouping the data and filtering for locations with multiple vessels.
+
+-   **Counted transshipment** instances by grouping the filtered data by company and date, ensuring that multiple events on the same day are counted as one.
+
+-   **Evaluated the results** by summarizing the number of unique transshipment days for each company.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+
+# Step 1: Firstly, let's recreate the dataframe earlier but with a larger date range
+data <- transponder_ping_df %>%
+  group_by(vessel) %>%
+  arrange(start_time) %>%
+  mutate(end_time = lead(start_time)) %>%
+  filter(date >= as.Date("2035-02-01") & date <= as.Date("2035-05-10"))%>%
+  ungroup() %>%
+  select(date, start_time, end_time, location, vessel,company)
+
+# Remove rows where end_time is NA (last observation for each vessel)
+data <- data %>% filter(!is.na(end_time))%>% filter(!is.na(company))
+
+# Now you have start_time and end_time calculated for each vessel
+
+# Assign numeric values to locations for plotting purposes 
+data$location_factor <- as.factor(data$location) 
+data$location_num <- as.numeric(data$location_factor)
+
+
+
+# Step 2: Identify transshipment points
+excluded_locations <- c("Haacklee", "Himark", "Port Grove", "Lomark", "Paackland", "South Paackland")
+
+transshipment_data <- data %>%
+  filter(!location %in% excluded_locations) %>%
+  group_by(company, date, location) %>%
+  summarise(vessels_at_location = n_distinct(vessel), .groups = 'drop') %>%
+  filter(vessels_at_location > 1)
+
+# Step 3: Count transshipment instances grouped by company, considering each day with transshipment as one instance
+transshipment_count <- transshipment_data %>%
+  group_by(company, date) %>%
+  summarise(transshipment = n_distinct(date), .groups = 'drop') %>%
+  group_by(company) %>%
+  summarise(transshipment_days = n(), .groups = 'drop')
+
+```
+
+The transshipment_count data frame is used for creating the column chart.
+
+**Plotting the Column Chart**: We use ggplot() to initiate the plotting process. Inside aes(), we define the aesthetic mappings, where x represents the companies reordered by the number of transshipment days, y represents the number of transshipment days, and fill is used to differentiate between companies. We then add geom_col() to create the column chart.
+
+**Labels and Titles**: We add appropriate labels and titles to the plot using labs(), specifying the title, x-axis label, and y-axis label.
+
+**Theme Settings**: We adjust the theme of the plot using theme_minimal() to achieve a clean and minimalist appearance. Additionally, we rotate the x-axis text labels by 90 degrees using theme(axis.text.x = element_text(angle = 90, hjust = 1)) to prevent overlap.
+
+**Legend**: We remove the legend for the fill aesthetic using guides(fill = "none") since the fill color does not convey additional information in this specific chart.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Create a column chart
+ggplot(transshipment_count, aes(x = reorder(company, -transshipment_days), y = transshipment_days, fill = company)) +
+  geom_col() +
+  labs(title = "Number of Transshipment Days by Company",
+       x = "Company",
+       y = "Transshipment Days") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  guides(fill = "none")
+
+```
+
+::: callout-note
+**Important Observations**
+
+-   Approximately 45 companies have shown indications of engaging in transshipment activities. Given that transshipment often correlates with illegal fishing practices, this suggests that these 45 companies may be violating fishing regulations.
+:::
+
+## Task 4:
+
+In this section, we recreate the data and transshipment_data by processing the dataframe (transponder_ping_df) to analyze transshipment activities of vessels, this time for a larger date range. We aim to split the data into two periods: before and after SouthSeafood Express Corp was caught, likely around May 16, 2035.
+
+The goal is to identify new companies involved in transshipment activities after the catch date by comparing the companies from both periods, highlighting potential new entrants to transshipment following the crackdown on SouthSeafood Express Corp.
+
+::: callout-note
+**Other considerations**
+
+Howver, since it is unlikely that companies restart illegal operations immediately after they are caught, we set the cutoff date to two months after SouthSeafood Express Corp was caught instead as 2035-07-12.
+:::
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+data <- transponder_ping_df %>%
+  group_by(vessel) %>%
+  arrange(start_time) %>%
+  mutate(end_time = lead(start_time)) %>%
+  filter(date >= as.Date("2035-02-01") & date <= as.Date("2035-10-10"))%>%
+  ungroup() %>%
+  select(date, start_time, end_time, location, vessel,company)
+
+# Remove rows where end_time is NA (last observation for each vessel)
+data <- data %>% filter(!is.na(end_time))%>% filter(!is.na(company))
+
+# Now you have start_time and end_time calculated for each vessel
+
+# Assign numeric values to locations for plotting purposes 
+data$location_factor <- as.factor(data$location) 
+data$location_num <- as.numeric(data$location_factor)
+
+
+
+# Step 2: Identify transshipment points
+excluded_locations <- c("Haacklee", "Himark", "Port Grove", "Lomark", "Paackland", "South Paackland")
+
+transshipment_data <- data %>%
+  filter(!location %in% excluded_locations) %>%
+  group_by(company, date, location) %>%
+  summarise(vessels_at_location = n_distinct(vessel), .groups = 'drop') %>%
+  filter(vessels_at_location > 1)
+
+
+
+# Filter transshipment data after the date when SouthSeafood Express Corp was caught
+after_catch_date_and2months <- transshipment_data %>%
+  filter(date >= as.Date("2035-07-12"))  # Adjust the date as per your data
+
+# Identify unique companies involved in transshipment after the catch date
+unique_companies_after_catch <- after_catch_date_and2months %>%
+  distinct(company)
+
+# Filter transshipment data before the catch date
+before_catch_date_and2months <- transshipment_data %>%
+  filter(date < as.Date("2035-07-11"))  # Adjust the date as per your data
+
+# Check if any of the companies after the catch date are new
+new_companies <- unique_companies_after_catch %>%
+  filter(!company %in% before_catch_date_and2months$company)
+
+# Print new companies starting transshipment after SouthSeafood Express Corp was caught
+print(new_companies)
+
+
+
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code" 
+# Step 1: Filter transshipment data for the new vessels found
+new_vessels_transshipment <- transshipment_data %>%
+  filter(company %in% new_companies$company) %>%
+  group_by(company, date) %>%
+  summarise(transshipment = n_distinct(date), .groups = 'drop') %>%
+  group_by(company) %>%
+  summarise(transshipment_days = n(), .groups = 'drop')
+
+
+
+
+# Create a column chart
+ggplot(new_vessels_transshipment, aes(x = reorder(company, -transshipment_days), y = transshipment_days, fill = company)) +
+  geom_col() +
+  labs(title = "Number of Transshipment Days by Company",
+       x = "Company",
+       y = "Transshipment Days") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  guides(fill = "none")
+
+
+```
+
+We have identified two potential companies that might be the same entity as SouthSeafood Express Corp, which was caught red-handed and likely restarted their illegal fishing operations. These companies are `Tainamarine Fishing Co` and `Taylor-Sawyer`, both of which are found to be of suspicious of transhippment activities and also began operations within 2-3 months after SouthSeafood Express Corp was apprehended.
+
+Among them, `Tainamarine Fishing Co` seemed to be the most likely suspect as the two vessels belonging to it swimmingsafely92d and posiedonsparadise7e6 possesses the same tonnage and length_overall as snappersnatcher7be and roachrobberdb6 respectively.
+
+```{r}
+info <- mc2_nodes %>%
+  filter(company %in% c("Tainamarine Fishing Co", "SouthSeafood Express Corp"))
+
+# Select the relevant columns for tonnage and length_overall
+info %>%
+  select(id, company, tonnage, length_overall)
+```
+
+In the next section, we proceeded further to investigate `Tainamarine Fishing Co` by plotting its vessel trajectories over time. This in turn led to some interesting findings.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"   
+
+data <- transponder_ping_df %>%
+  group_by(vessel) %>%
+  arrange(start_time) %>%
+  mutate(end_time = lead(start_time)) %>%
+  filter(date >= as.Date("2035-08-05") & date <= as.Date("2035-08-10"))%>%
+  ungroup() %>%
+  select(date, start_time, end_time, location, vessel,company)
+
+# Remove rows where end_time is NA (last observation for each vessel)
+data <- data %>% filter(!is.na(end_time))%>% filter(!is.na(company))
+
+# Now you have start_time and end_time calculated for each vessel
+
+# Assign numeric values to locations for plotting purposes 
+data$location_factor <- as.factor(data$location) 
+data$location_num <- as.numeric(data$location_factor)
+
+  
+combined_data <- data %>%
+  filter(company == "Tainamarine Fishing Co")
+
+# Create a line plot of vessel location over time
+ggplot(combined_data, aes(x = date, y = location_num, color = vessel)) +
+  geom_line() +
+  geom_point(size = 2) +  # Add points for each location
+  geom_text_repel(aes(label = location), size = 3) +  # Add labels with repelling
+  labs(title = "Vessel Trajectories Over Time by Company", x = "Time", y = "Location", color = "Vessel") +
+  theme_minimal() 
+
+
+
+
+```
+
+From the visualization below, it seems that `Tainamarine Fishing Co`'s vessel trajectories is very similar to `SouthSeafood Express Corp` vessels and is very likely the same entity which was caught fishing illegally earlier.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+# Group the data by company and vessel
+
+# Join node data
+mc2_nodes_geo <- combined_data %>%
+  left_join(geo_data, by = c("location" = "id"))
+
+# Convert the resulting data frame to sf object
+mc2_nodes_geo_sf <- st_as_sf(mc2_nodes_geo)
+
+
+grouped_data <- mc2_nodes_geo_sf %>%
+  filter(company == "Tainamarine Fishing Co") %>%  
+  group_by(company, vessel) %>%
+  mutate(Longitude = st_coordinates(st_centroid(geometry))[, 1],
+         Latitude = st_coordinates(st_centroid(geometry))[, 2])
+
+# Create a palette of colors
+colors <- rainbow(length(unique(grouped_data$vessel)))
+
+# Create a ggplot with the legend for vessels
+ggplot() +
+  geom_sf(data = geo_data, aes(geometry = geometry), color = "black", size = 0.5, fill = NA) +  # Plot borders
+  geom_path(data = grouped_data, aes(x = Longitude, y = Latitude, color = vessel, group = vessel), size = 1) +  # Plot paths with different colors for each vessel
+  geom_point(data = grouped_data, aes(x = Longitude, y = Latitude, color = vessel), size = 3) +  # Plot points
+  geom_text(data = grouped_data, aes(x = Longitude, y = Latitude, label = location), size = 3, vjust = -1) +  # Add labels
+  scale_color_manual(values = colors) +  # Assign colors to vessels
+  labs(x = "Longitude", y = "Latitude", title = "Vessel Trajectories by Company", color = "Vessel") +  # Add legend title
   coord_sf() +  # Use coord_sf for spatial data
   theme_minimal()  # Minimal theme
 ```
-
-```{r}
-
-
-
-
-```
-
-
-
-
-```{r}
-#### Last HarborReport of SouthSeafood Express Corp"
-date_caught <- max(harboureport_culprit$harboreporting_date)
-print(date_caught)
-```
-`"SouthSeafood Express Corp"`was likely caught just after `"2035-05-09"` as that happened to be it's last harbor report.
-
-
-
-
-
-
-
-
-
-
