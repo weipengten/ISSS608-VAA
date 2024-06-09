@@ -30,7 +30,7 @@ This study aims to use visual analytics to understand patterns of groups in the 
 
 -   **Task 4**- How did fishing activity change after SouthSeafood Express Corp was caught? What new behaviors in the Oceanus commercial fishing community are most suspicious and why?
 
-# 1.Data Preparation
+# Data Preparation
 
 ## 1.1 Loading R Packages
 
@@ -379,12 +379,12 @@ tm_shape(geo_data) +
 ```
 :::
 
-## Task 2 (part 1) : EDA
+# Task 2 (part 1) : EDA
 
 ::: panel-tabset
-### Filter and Prepare Data
+## Filter and Prepare Data
 
-#### Extracting Commodity Fish Data
+### Extracting Commodity Fish Data
 
 This code segment focuses on filtering and preparing data for exploratory data analysis (EDA), particularly concerning commodity fish species in specific regions. It utilizes several packages within the tidyverse ecosystem.
 
@@ -434,7 +434,7 @@ get_commodity_fish_ids <- function(..., regions = NULL) {
 
 ```
 
-#### Preparing Harbor Report Data.
+### Preparing Harbor Report Data.
 
 This code filters data from mc2_links_prep to isolate harbor report events involving particular vessels ("snappersnatcher7be" and "roachrobberdb6"). It renames columns for clarity and selects only relevant columns, focusing on the city, vessel, event type, and reporting date. Overall, it streamlines the extraction and organization of data crucial for analyzing harbor activities related to specific vessels.
 
@@ -448,7 +448,7 @@ harboureport_culprit<- mc2_links_prep %>%
   select(city, vessel, type, harboreporting_date)
 ```
 
-#### Processing Transaction Data
+### Processing Transaction Data
 
 Retrieve and process transaction data to identify suspicious transactions.
 
@@ -480,7 +480,7 @@ duplicated_transactions <- transactions[duplicated(transactions$source), ]
 duplicated_transactions
 ```
 
-#### Filtering and Preparing Nodes and Links
+### Filtering and Preparing Nodes and Links
 
 This code segment filters and prepares data from mc2_nodes and mc2_links dataframes, focusing on specific types of entities such as vessels, points, cities, and regions, while excluding vessels not associated with "SouthSeafood Express Corp". It further filters mc2_links data to retain only transport events, transactions, and harbor reports. Then, it extracts relevant node IDs and filters edges to ensure consistency, removing any missing nodes from the filtered links. Overall, this process ensures that the data is tailored for subsequent analysis, particularly in the context of transportation and harbor activities involving specific entities.
 
@@ -513,7 +513,7 @@ if(length(missing_nodes) > 0) {
 
 ```
 
-### Construct the Graph
+## Construct the Graph
 
 This code block utilizes the `tidygraph` package to construct a graph (`mc2_graph`) with filtered nodes and edges from the `mc2_nodes_suspect` and `mc2_links_suspect` dataframes, respectively. Here's a brief summary:
 
@@ -560,7 +560,7 @@ mc2_graph_with_edges %>%
        size = "Degree Centrality")
 ```
 
-### Interactive VIsualisation
+## Interactive VIsualisation
 
 This code aggregates edge data from `mc2_links_suspect`, filters out isolated nodes, and prepares the data for visualization. It utilizes the `visNetwork` function from the `visNetwork` package to create an interactive network visualization. Nodes and edges are represented based on the filtered data, with options for selecting nodes by type and highlighting nearest nodes. The resulting visualization offers insights into the network structure and relationships among different entities involved in the analyzed activities.
 
@@ -609,10 +609,10 @@ visNetwork(mc2_nodes_suspect, mc2_links_suspect) %>%
 ```
 :::
 
-## Task 2 (part 2) : Deep Investigations into "snappersnatcher7b"
+# Task 2 (part 2) : Deep Investigations into "snappersnatcher7b"
 
 ::: panel-tabset
-### 1. Fish Species in Ghoti Preserve
+## 1. Fish Species in Ghoti Preserve
 
 From the EDA/ visualisation earlier, it seems `"snappersnatcher7be"` frequents:
 
@@ -639,7 +639,7 @@ unique_fish_species_ghoti <- fishspecies_expanded %>%
 print(unique_fish_species_ghoti)
 ```
 
-### 2. Suspicious Transactions
+## 2. Suspicious Transactions
 
 Merge the transactions with HarborReport data to identify relevant suspicious transactions.
 
@@ -712,7 +712,7 @@ ggplot(filtered_transactions)  +
 
 ```
 
-### 3. Suspicious Findings
+## 3. Suspicious Findings
 
 From our observations, "snappersnatcher7be" is likely carrying the following cargo:
 
@@ -751,7 +751,7 @@ count_unique_categories(transponder_culprit, 'source')
 
 ```
 
-#### Bar Plot for Suspicious and Legitimate Transportation Activities
+### Bar Plot for Suspicious and Legitimate Transportation Activities
 
 We plotted a bar plot illustrating transportation activities associated with the entity "snappersnatcher7be," distinguishing between suspicious and legitimate locations as described above.
 
@@ -786,7 +786,7 @@ ggplot(location_counts, aes(x = Occurrences, y = Location, fill = Type)) +
   )
 ```
 
-#### Geographical Plot for Suspicious and Legitimate Transportation Activities
+### Geographical Plot for Suspicious and Legitimate Transportation Activities
 
 Below, is the geographical representation of what we found to be legitmate and suspicious locations for the vessel.
 
@@ -839,10 +839,10 @@ ggplot() +
 ```
 :::
 
-## Task 2 (part 3) : Deep Investigations into "roachrobberdb6"
+# Task 2 (part 3) : Deep Investigations into "roachrobberdb6"
 
 ::: panel-tabset
-### 1. Suspicious Transactions
+## 1. Suspicious Transactions
 
 Merge the transactions with HarborReport data to identify relevant suspicious transactions.
 
@@ -906,7 +906,7 @@ ggplot(filtered_transactions1) +
   )
 ```
 
-### 2. No Suspicious Findings
+## 2. No Suspicious Findings
 
 From our observations previously, "roachrobberdb6" is likely carrying the following cargo:
 
@@ -940,7 +940,7 @@ count_unique_categories(transponder_culprit1, 'source')
 
 ```
 
-#### Bar Plot for Suspicious and Legitimate Transportation Activities
+### Bar Plot for Suspicious and Legitimate Transportation Activities
 
 We plotted a bar plot illustrating transportation activities associated with the entity "roachrobberdb6," distinguishing between suspicious and legitimate locations as described above.
 
@@ -975,7 +975,7 @@ ggplot(location_counts1, aes(x = Occurrences, y = Location, fill = Type)) +
   )
 ```
 
-#### Geographical Visualisation
+### Geographical Visualisation
 
 Below, is the geographical representation of what we found to be legitmate and suspicious locations for the vessel.
 
@@ -1030,7 +1030,7 @@ ggplot() +
 ```
 :::
 
-## Task 2 (part 4) : Suspicious Trajectories
+# Task 2 (part 4) : Suspicious Trajectories
 
 In this section, we conduct an analysis of vessel trajectories to identify suspicious activities, particularly focusing on the operations of SouthSeafood Express Corp.
 
@@ -1179,7 +1179,7 @@ ggplot() +
   theme_minimal()  # Mi
 ```
 
-## Task 2 (part 5) : Insights from Visualisations
+# Task 2 (part 5) : Insights from Visualisations
 
 ::: callout-note
 **Suspicious Movement and Catch Contents of SouthSeafood Express Corp**
@@ -1215,15 +1215,15 @@ ggplot() +
 -   The trajectories of both vessels belonging to SouthSeafood Express Corp appear to intersect at specific points in time, particularly at Nav C. This presents a compelling indication of transshipment taking place.
 :::
 
-## Task 3:
+# Task 3:
 
 In the previous analysis, we conducted an assessment of transshipment activities, which led us to identify SouthSeafood Express Corp as suspicious. This finding suggested a potential involvement in illegal fishing activities and we decided to analyze if other companies exhibit the same patterns.
 
-#### 1. Defining Transshipment
+### 1. Defining Transshipment
 
 -   **Transshipment** refers to the transfer of cargo from one vessel to another while at sea. For our analysis, we define a transshipment event as occurring when multiple vessels from the same company are present at the same location on the same date, excluding cities
 
-#### 2. Process
+### 2. Process
 
 -   **Identified transshipment** points by grouping the data and filtering for locations with multiple vessels.
 
@@ -1304,7 +1304,7 @@ ggplot(transshipment_count, aes(x = reorder(company, -transshipment_days), y = t
 -   Approximately 45 companies have shown indications of engaging in transshipment activities. Given that transshipment often correlates with illegal fishing practices, this suggests that these 45 companies may be violating fishing regulations.
 :::
 
-## Task 4:
+# Task 4:
 
 In this section, we recreate the data and transshipment_data by processing the dataframe (transponder_ping_df) to analyze transshipment activities of vessels, this time for a larger date range. We aim to split the data into two periods: before and after SouthSeafood Express Corp was caught, likely around May 16, 2035.
 
@@ -1446,8 +1446,6 @@ ggplot(combined_data, aes(x = date, y = location_num, color = vessel)) +
   geom_text_repel(aes(label = location), size = 3) +  # Add labels with repelling
   labs(title = "Vessel Trajectories Over Time by Company", x = "Time", y = "Location", color = "Vessel") +
   theme_minimal() 
-
-
 
 
 ```

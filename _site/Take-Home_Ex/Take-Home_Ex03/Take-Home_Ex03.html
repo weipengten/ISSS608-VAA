@@ -237,7 +237,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Take-Home_Ex/Take-Home_Ex02/Take-Home_Ex02.html" rel="" target="">
  <span class="dropdown-text">Take-Home Exercise 2</span></a>
   </li>  
-        <li class="dropdown-header">Take-Home Exercise 3</li>
+        <li>
+    <a class="dropdown-item" href="../../Take-Home_Ex/Take-Home_Ex03/Take-Home_Ex03.html" rel="" target="">
+ <span class="dropdown-text">Take-Home Exercise 3</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -269,19 +272,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#vast-challenge-2024-mini-challenge-2" id="toc-vast-challenge-2024-mini-challenge-2" class="nav-link active" data-scroll-target="#vast-challenge-2024-mini-challenge-2"><strong>VAST Challenge 2024 : Mini-Challenge 2</strong></a></li>
   <li><a href="#project-brief" id="toc-project-brief" class="nav-link" data-scroll-target="#project-brief"><strong>Project Brief</strong></a></li>
   <li><a href="#project-objectives" id="toc-project-objectives" class="nav-link" data-scroll-target="#project-objectives"><strong>Project Objectives</strong></a></li>
-  <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation">1.Data Preparation</a>
+  <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation">Data Preparation</a>
   <ul class="collapse">
   <li><a href="#loading-r-packages" id="toc-loading-r-packages" class="nav-link" data-scroll-target="#loading-r-packages">1.1 Loading R Packages</a></li>
   <li><a href="#loading-the-data" id="toc-loading-the-data" class="nav-link" data-scroll-target="#loading-the-data">1.2. Loading the Data</a></li>
   <li><a href="#data-cleaning" id="toc-data-cleaning" class="nav-link" data-scroll-target="#data-cleaning">1.3. Data Cleaning</a></li>
+  </ul></li>
   <li><a href="#task-2-part-1-eda" id="toc-task-2-part-1-eda" class="nav-link" data-scroll-target="#task-2-part-1-eda">Task 2 (part 1) : EDA</a></li>
   <li><a href="#task-2-part-2-deep-investigations-into-snappersnatcher7b" id="toc-task-2-part-2-deep-investigations-into-snappersnatcher7b" class="nav-link" data-scroll-target="#task-2-part-2-deep-investigations-into-snappersnatcher7b">Task 2 (part 2) : Deep Investigations into “snappersnatcher7b”</a></li>
   <li><a href="#task-2-part-3-deep-investigations-into-roachrobberdb6" id="toc-task-2-part-3-deep-investigations-into-roachrobberdb6" class="nav-link" data-scroll-target="#task-2-part-3-deep-investigations-into-roachrobberdb6">Task 2 (part 3) : Deep Investigations into “roachrobberdb6”</a></li>
   <li><a href="#task-2-part-4-suspicious-trajectories" id="toc-task-2-part-4-suspicious-trajectories" class="nav-link" data-scroll-target="#task-2-part-4-suspicious-trajectories">Task 2 (part 4) : Suspicious Trajectories</a></li>
   <li><a href="#task-2-part-5-insights-from-visualisations" id="toc-task-2-part-5-insights-from-visualisations" class="nav-link" data-scroll-target="#task-2-part-5-insights-from-visualisations">Task 2 (part 5) : Insights from Visualisations</a></li>
-  <li><a href="#task-3" id="toc-task-3" class="nav-link" data-scroll-target="#task-3">Task 3:</a></li>
-  <li><a href="#task-4" id="toc-task-4" class="nav-link" data-scroll-target="#task-4">Task 4:</a></li>
+  <li><a href="#task-3" id="toc-task-3" class="nav-link" data-scroll-target="#task-3">Task 3:</a>
+  <ul class="collapse">
+  <li><a href="#defining-transshipment" id="toc-defining-transshipment" class="nav-link" data-scroll-target="#defining-transshipment">1. Defining Transshipment</a></li>
+  <li><a href="#process" id="toc-process" class="nav-link" data-scroll-target="#process">2. Process</a></li>
   </ul></li>
+  <li><a href="#task-4" id="toc-task-4" class="nav-link" data-scroll-target="#task-4">Task 4:</a></li>
   </ul>
 </nav>
     </div>
@@ -314,7 +321,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">June 8, 2024</p>
+      <p class="date-modified">June 9, 2024</p>
     </div>
   </div>
     
@@ -342,7 +349,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 </section>
 <section id="data-preparation" class="level1">
-<h1>1.Data Preparation</h1>
+<h1>Data Preparation</h1>
 <section id="loading-r-packages" class="level2">
 <h2 class="anchored" data-anchor-id="loading-r-packages">1.1 Loading R Packages</h2>
 <p>In the code chunk, p_load() and&nbsp;<a href="https://cran.r-project.org/web/packages/pacman/"><strong>pacman</strong></a>&nbsp;package is used to load the required packages below:</p>
@@ -748,14 +755,15 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="task-2-part-1-eda" class="level2">
-<h2 class="anchored" data-anchor-id="task-2-part-1-eda">Task 2 (part 1) : EDA</h2>
+</section>
+<section id="task-2-part-1-eda" class="level1">
+<h1>Task 2 (part 1) : EDA</h1>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">Filter and Prepare Data</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Construct the Graph</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false">Interactive VIsualisation</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
-<section id="extracting-commodity-fish-data" class="level4">
-<h4 class="anchored" data-anchor-id="extracting-commodity-fish-data">Extracting Commodity Fish Data</h4>
+<section id="extracting-commodity-fish-data" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-commodity-fish-data">Extracting Commodity Fish Data</h3>
 <p>This code segment focuses on filtering and preparing data for exploratory data analysis (EDA), particularly concerning commodity fish species in specific regions. It utilizes several packages within the tidyverse ecosystem.</p>
 <p>Firstly, the <code>dplyr</code> package is employed for data manipulation tasks. Two main operations are performed:</p>
 <ol type="1">
@@ -798,8 +806,8 @@ Geodetic CRS:  WGS 84</code></pre>
 </details>
 </div>
 </section>
-<section id="preparing-harbor-report-data." class="level4">
-<h4 class="anchored" data-anchor-id="preparing-harbor-report-data.">Preparing Harbor Report Data.</h4>
+<section id="preparing-harbor-report-data." class="level3">
+<h3 class="anchored" data-anchor-id="preparing-harbor-report-data.">Preparing Harbor Report Data.</h3>
 <p>This code filters data from mc2_links_prep to isolate harbor report events involving particular vessels (“snappersnatcher7be” and “roachrobberdb6”). It renames columns for clarity and selects only relevant columns, focusing on the city, vessel, event type, and reporting date. Overall, it streamlines the extraction and organization of data crucial for analyzing harbor activities related to specific vessels.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>harboureport_culprit<span class="ot">&lt;-</span> mc2_links_prep <span class="sc">%&gt;%</span></span>
@@ -811,8 +819,8 @@ Geodetic CRS:  WGS 84</code></pre>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(city, vessel, type, harboreporting_date)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="processing-transaction-data" class="level4">
-<h4 class="anchored" data-anchor-id="processing-transaction-data">Processing Transaction Data</h4>
+<section id="processing-transaction-data" class="level3">
+<h3 class="anchored" data-anchor-id="processing-transaction-data">Processing Transaction Data</h3>
 <p>Retrieve and process transaction data to identify suspicious transactions.</p>
 <p>Let’s retrieve the <code>Transaction</code> data by applying the filter <code>type == "Event.Transaction"</code> for our links data</p>
 <p>We then perform a self-join on the transaction dataset on <code>source</code> column to get the respective <code>city</code> and <code>fish</code> column for each cargo delivery, filtering for only the two cities we observed earlier ‘City of Paackland’, ‘City of Lomark’ which <code>snappersnatcher7b</code> frequented.</p>
@@ -846,8 +854,8 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="filtering-and-preparing-nodes-and-links" class="level4">
-<h4 class="anchored" data-anchor-id="filtering-and-preparing-nodes-and-links">Filtering and Preparing Nodes and Links</h4>
+<section id="filtering-and-preparing-nodes-and-links" class="level3">
+<h3 class="anchored" data-anchor-id="filtering-and-preparing-nodes-and-links">Filtering and Preparing Nodes and Links</h3>
 <p>This code segment filters and prepares data from mc2_nodes and mc2_links dataframes, focusing on specific types of entities such as vessels, points, cities, and regions, while excluding vessels not associated with “SouthSeafood Express Corp”. It further filters mc2_links data to retain only transport events, transactions, and harbor reports. Then, it extracts relevant node IDs and filters edges to ensure consistency, removing any missing nodes from the filtered links. Overall, this process ensures that the data is tailored for subsequent analysis, particularly in the context of transportation and harbor activities involving specific entities.</p>
 <div class="cell">
 <details>
@@ -971,16 +979,16 @@ Geodetic CRS:  WGS 84</code></pre>
 </details>
 <div class="cell-output-display">
 
-<div class="visNetwork html-widget html-fill-item" id="htmlwidget-edb8332b2d95b925773d" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-edb8332b2d95b925773d">{"x":{"nodes":{"id":["City of Lomark","City of Himark","City of Paackland","snappersnatcher7be","roachrobberdb6","Nav A","Nav C","Nav 2","Nav 1","Exit East","Nav E","Cod Table","Ghoti Preserve","Wrasse Beds"],"group":["Entity.Location.City","Entity.Location.City","Entity.Location.City","Entity.Vessel","Entity.Vessel","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Region","Entity.Location.Region","Entity.Location.Region"],"type_original":["Entity.Location.City","Entity.Location.City","Entity.Location.City","Entity.Vessel.FishingVessel","Entity.Vessel.FishingVessel","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Region","Entity.Location.Region","Entity.Location.Region"],"namee":[null,null,null,null,null,null,null,null,null,null,null,null,null,null],"company":[null,null,null,"SouthSeafood Express Corp","SouthSeafood Express Corp",null,null,null,null,null,null,null,null,null],"flag_country":[null,null,null,"Oceanus","Oceanus",null,null,null,null,null,null,null,null,null],"Activities":["c(\"Deep sea fishing\", \"Commercial fishing\", \"Tourism\", \"Shipping\")","Recreation, tourism","c(\"Industry\", \"Fishing industry\", \"Local shipping\", \"Tourism\", \"Research\", \"Sport fishing\")","NULL","NULL","Navigation","Navigation","Navigation","Navigation","c(\"International shipping\", \"Deep sea fishing\")","Navigation","Commercial fishing","c(\"Research\", \"Tourism\", \"Recreation\")","Commercial fishing"],"tonnage":[null,null,null,100,11700,null,null,null,null,null,null,null,null,null],"length_overall":[null,null,null,20,130,null,null,null,null,null,null,null,null,null],"fish_species_present":["NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","c(\"Cod/Gadus n.specificatae\", \"Birdseye/Pisces frigus\", \"Beauvoir/Habeas pisces\")","c(\"Wrasse/Labridae n.refert\", \"Beauvoir/Habeas pisces\", \"Helenaa/Pisces satis\", \"Offidiaa/Piscis osseus\")","c(\"Wrasse/Labridae n.refert\", \"Birdseye/Pisces frigus\", \"Beauvoir/Habeas pisces\")"],"kind":["city","city","city",null,null,"buoy","buoy","buoy","buoy","buoy","buoy","Fishing Ground","Ecological Preserve","Fishing Ground"],"label":["City of Lomark","City of Himark","City of Paackland","snappersnatcher7be","roachrobberdb6","Nav A","Nav C","Nav 2","Nav 1","Exit East","Nav E","Cod Table","Ghoti Preserve","Wrasse Beds"],"id1":["City of Lomark","City of Himark","City of Paackland","SouthSeafood Express Corp1","SouthSeafood Express Corp2","Nav A","Nav C","Nav 2","Nav 1","Exit East","Nav E","Cod Table","Ghoti Preserve","Wrasse Beds"],"x":[-0.1921588760204673,-1,0.6795870664563477,0.2455390365134982,-0.4693911032485671,-0.9969503730875415,0.0787311684484111,0.988599539610755,-0.4913253405388295,-0.2349606756132449,-0.411513148058645,1,0.2314909951094049,0.2174320660054336],"y":[0.01900676601901341,-0.4760391393869103,0.885270656404747,0.3805189049933002,-0.395848104058212,-0.8753006167130394,-0.08224043595550123,0.6052841166255416,0.1630816338536709,0.8590106693861477,-1,0.214245972416433,1,-0.2766138131495822]},"edges":{"from":["City of Himark","City of Lomark","City of Lomark","Cod Table","Exit East","Ghoti Preserve","Nav 1","Nav 1","Nav 2","Nav A","Nav C","Nav C","Nav E","Wrasse Beds","Wrasse Beds","roachrobberdb6","roachrobberdb6","snappersnatcher7be","snappersnatcher7be"],"to":["roachrobberdb6","roachrobberdb6","snappersnatcher7be","snappersnatcher7be","snappersnatcher7be","snappersnatcher7be","roachrobberdb6","snappersnatcher7be","snappersnatcher7be","roachrobberdb6","roachrobberdb6","snappersnatcher7be","roachrobberdb6","roachrobberdb6","snappersnatcher7be","City of Himark","City of Lomark","City of Lomark","City of Paackland"],"weight":[23,6,20,102,44,4,2,37,42,4,229,31,14,222,9,2,7,2,4]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","physics":false},"manipulation":{"enabled":false},"edges":{"smooth":false},"physics":{"stabilization":false},"layout":{"randomSeed":123}},"groups":["Entity.Location.City","Entity.Vessel","Entity.Location.Point","Entity.Location.Region"],"width":null,"height":null,"idselection":{"enabled":true,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false,"variable":"type","main":"Select by type"},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","igraphlayout":{"type":"square"},"legend":{"width":0.2,"useGroups":true,"position":"left","ncol":1,"stepX":100,"stepY":100,"zoom":true},"highlight":{"enabled":true,"hoverNearest":false,"degree":1,"algorithm":"all","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":false,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"}},"evals":[],"jsHooks":[]}</script>
+<div class="visNetwork html-widget html-fill-item" id="htmlwidget-5330df30e64795504ff8" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-5330df30e64795504ff8">{"x":{"nodes":{"id":["City of Lomark","City of Himark","City of Paackland","snappersnatcher7be","roachrobberdb6","Nav A","Nav C","Nav 2","Nav 1","Exit East","Nav E","Cod Table","Ghoti Preserve","Wrasse Beds"],"group":["Entity.Location.City","Entity.Location.City","Entity.Location.City","Entity.Vessel","Entity.Vessel","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Region","Entity.Location.Region","Entity.Location.Region"],"type_original":["Entity.Location.City","Entity.Location.City","Entity.Location.City","Entity.Vessel.FishingVessel","Entity.Vessel.FishingVessel","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Point","Entity.Location.Region","Entity.Location.Region","Entity.Location.Region"],"namee":[null,null,null,null,null,null,null,null,null,null,null,null,null,null],"company":[null,null,null,"SouthSeafood Express Corp","SouthSeafood Express Corp",null,null,null,null,null,null,null,null,null],"flag_country":[null,null,null,"Oceanus","Oceanus",null,null,null,null,null,null,null,null,null],"Activities":["c(\"Deep sea fishing\", \"Commercial fishing\", \"Tourism\", \"Shipping\")","Recreation, tourism","c(\"Industry\", \"Fishing industry\", \"Local shipping\", \"Tourism\", \"Research\", \"Sport fishing\")","NULL","NULL","Navigation","Navigation","Navigation","Navigation","c(\"International shipping\", \"Deep sea fishing\")","Navigation","Commercial fishing","c(\"Research\", \"Tourism\", \"Recreation\")","Commercial fishing"],"tonnage":[null,null,null,100,11700,null,null,null,null,null,null,null,null,null],"length_overall":[null,null,null,20,130,null,null,null,null,null,null,null,null,null],"fish_species_present":["NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","NULL","c(\"Cod/Gadus n.specificatae\", \"Birdseye/Pisces frigus\", \"Beauvoir/Habeas pisces\")","c(\"Wrasse/Labridae n.refert\", \"Beauvoir/Habeas pisces\", \"Helenaa/Pisces satis\", \"Offidiaa/Piscis osseus\")","c(\"Wrasse/Labridae n.refert\", \"Birdseye/Pisces frigus\", \"Beauvoir/Habeas pisces\")"],"kind":["city","city","city",null,null,"buoy","buoy","buoy","buoy","buoy","buoy","Fishing Ground","Ecological Preserve","Fishing Ground"],"label":["City of Lomark","City of Himark","City of Paackland","snappersnatcher7be","roachrobberdb6","Nav A","Nav C","Nav 2","Nav 1","Exit East","Nav E","Cod Table","Ghoti Preserve","Wrasse Beds"],"id1":["City of Lomark","City of Himark","City of Paackland","SouthSeafood Express Corp1","SouthSeafood Express Corp2","Nav A","Nav C","Nav 2","Nav 1","Exit East","Nav E","Cod Table","Ghoti Preserve","Wrasse Beds"],"x":[0.09360829412082938,0.1983278027641622,-0.6068337810221598,-0.2620969690166686,0.3002722830386855,1,-0.3768480100997041,-0.9268329810211546,0.4072604761468304,0.2618443536368922,0.6352883730510746,-0.1585206860442984,-1,-0.1051149970224807],"y":[0.01677977637488848,-0.8375859780690535,0.9418873196090634,0.3959050068081125,-0.4311288116617613,-0.6313037092588365,-0.1955598036953653,0.6826624212152774,0.1112525862084834,0.8210747295017364,-1,1,0.3066556272494716,-0.1482637366619201]},"edges":{"from":["City of Himark","City of Lomark","City of Lomark","Cod Table","Exit East","Ghoti Preserve","Nav 1","Nav 1","Nav 2","Nav A","Nav C","Nav C","Nav E","Wrasse Beds","Wrasse Beds","roachrobberdb6","roachrobberdb6","snappersnatcher7be","snappersnatcher7be"],"to":["roachrobberdb6","roachrobberdb6","snappersnatcher7be","snappersnatcher7be","snappersnatcher7be","snappersnatcher7be","roachrobberdb6","snappersnatcher7be","snappersnatcher7be","roachrobberdb6","roachrobberdb6","snappersnatcher7be","roachrobberdb6","roachrobberdb6","snappersnatcher7be","City of Himark","City of Lomark","City of Lomark","City of Paackland"],"weight":[23,6,20,102,44,4,2,37,42,4,229,31,14,222,9,2,7,2,4]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","physics":false},"manipulation":{"enabled":false},"edges":{"smooth":false},"physics":{"stabilization":false},"layout":{"randomSeed":123}},"groups":["Entity.Location.City","Entity.Vessel","Entity.Location.Point","Entity.Location.Region"],"width":null,"height":null,"idselection":{"enabled":true,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false,"variable":"type","main":"Select by type"},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","igraphlayout":{"type":"square"},"legend":{"width":0.2,"useGroups":true,"position":"left","ncol":1,"stepX":100,"stepY":100,"zoom":true},"highlight":{"enabled":true,"hoverNearest":false,"degree":1,"algorithm":"all","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":false,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
 </div>
 </div>
 </section>
-<section id="task-2-part-2-deep-investigations-into-snappersnatcher7b" class="level2">
-<h2 class="anchored" data-anchor-id="task-2-part-2-deep-investigations-into-snappersnatcher7b">Task 2 (part 2) : Deep Investigations into “snappersnatcher7b”</h2>
+<section id="task-2-part-2-deep-investigations-into-snappersnatcher7b" class="level1">
+<h1>Task 2 (part 2) : Deep Investigations into “snappersnatcher7b”</h1>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">1. Fish Species in Ghoti Preserve</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">2. Suspicious Transactions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false">3. Suspicious Findings</a></li></ul>
 <div class="tab-content">
@@ -1126,8 +1134,8 @@ Geodetic CRS:  WGS 84</code></pre>
                 7                 5                 3                 1 </code></pre>
 </div>
 </div>
-<section id="bar-plot-for-suspicious-and-legitimate-transportation-activities" class="level4">
-<h4 class="anchored" data-anchor-id="bar-plot-for-suspicious-and-legitimate-transportation-activities">Bar Plot for Suspicious and Legitimate Transportation Activities</h4>
+<section id="bar-plot-for-suspicious-and-legitimate-transportation-activities" class="level3">
+<h3 class="anchored" data-anchor-id="bar-plot-for-suspicious-and-legitimate-transportation-activities">Bar Plot for Suspicious and Legitimate Transportation Activities</h3>
 <p>We plotted a bar plot illustrating transportation activities associated with the entity “snappersnatcher7be,” distinguishing between suspicious and legitimate locations as described above.</p>
 <div class="cell">
 <details>
@@ -1164,8 +1172,8 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="geographical-plot-for-suspicious-and-legitimate-transportation-activities" class="level4">
-<h4 class="anchored" data-anchor-id="geographical-plot-for-suspicious-and-legitimate-transportation-activities">Geographical Plot for Suspicious and Legitimate Transportation Activities</h4>
+<section id="geographical-plot-for-suspicious-and-legitimate-transportation-activities" class="level3">
+<h3 class="anchored" data-anchor-id="geographical-plot-for-suspicious-and-legitimate-transportation-activities">Geographical Plot for Suspicious and Legitimate Transportation Activities</h3>
 <p>Below, is the geographical representation of what we found to be legitmate and suspicious locations for the vessel.</p>
 <div class="cell">
 <details>
@@ -1222,8 +1230,8 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="task-2-part-3-deep-investigations-into-roachrobberdb6" class="level2">
-<h2 class="anchored" data-anchor-id="task-2-part-3-deep-investigations-into-roachrobberdb6">Task 2 (part 3) : Deep Investigations into “roachrobberdb6”</h2>
+<section id="task-2-part-3-deep-investigations-into-roachrobberdb6" class="level1">
+<h1>Task 2 (part 3) : Deep Investigations into “roachrobberdb6”</h1>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">1. Suspicious Transactions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">2. No Suspicious Findings</a></li></ul>
 <div class="tab-content">
@@ -1329,8 +1337,8 @@ Geodetic CRS:  WGS 84</code></pre>
             40             35              2              2 </code></pre>
 </div>
 </div>
-<section id="bar-plot-for-suspicious-and-legitimate-transportation-activities-1" class="level4">
-<h4 class="anchored" data-anchor-id="bar-plot-for-suspicious-and-legitimate-transportation-activities-1">Bar Plot for Suspicious and Legitimate Transportation Activities</h4>
+<section id="bar-plot-for-suspicious-and-legitimate-transportation-activities-1" class="level3">
+<h3 class="anchored" data-anchor-id="bar-plot-for-suspicious-and-legitimate-transportation-activities-1">Bar Plot for Suspicious and Legitimate Transportation Activities</h3>
 <p>We plotted a bar plot illustrating transportation activities associated with the entity “roachrobberdb6,” distinguishing between suspicious and legitimate locations as described above.</p>
 <div class="cell">
 <details>
@@ -1367,8 +1375,8 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="geographical-visualisation" class="level4">
-<h4 class="anchored" data-anchor-id="geographical-visualisation">Geographical Visualisation</h4>
+<section id="geographical-visualisation" class="level3">
+<h3 class="anchored" data-anchor-id="geographical-visualisation">Geographical Visualisation</h3>
 <p>Below, is the geographical representation of what we found to be legitmate and suspicious locations for the vessel.</p>
 <div class="cell">
 <details>
@@ -1427,8 +1435,8 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="task-2-part-4-suspicious-trajectories" class="level2">
-<h2 class="anchored" data-anchor-id="task-2-part-4-suspicious-trajectories">Task 2 (part 4) : Suspicious Trajectories</h2>
+<section id="task-2-part-4-suspicious-trajectories" class="level1">
+<h1>Task 2 (part 4) : Suspicious Trajectories</h1>
 <p>In this section, we conduct an analysis of vessel trajectories to identify suspicious activities, particularly focusing on the operations of SouthSeafood Express Corp.</p>
 <p>To begin, we extract transponder ping data, which provides information on vessel movements. We preprocess this data, assigning numeric values to locations and filtering out irrelevant areas such as Haacklee, Himark, Port Grove, Lomark, Paackland, and South Paackland.</p>
 <div class="cell">
@@ -1580,8 +1588,8 @@ Note
 </div>
 </div>
 </section>
-<section id="task-2-part-5-insights-from-visualisations" class="level2">
-<h2 class="anchored" data-anchor-id="task-2-part-5-insights-from-visualisations">Task 2 (part 5) : Insights from Visualisations</h2>
+<section id="task-2-part-5-insights-from-visualisations" class="level1">
+<h1>Task 2 (part 5) : Insights from Visualisations</h1>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1639,17 +1647,17 @@ Note
 </div>
 </div>
 </section>
-<section id="task-3" class="level2">
-<h2 class="anchored" data-anchor-id="task-3">Task 3:</h2>
+<section id="task-3" class="level1">
+<h1>Task 3:</h1>
 <p>In the previous analysis, we conducted an assessment of transshipment activities, which led us to identify SouthSeafood Express Corp as suspicious. This finding suggested a potential involvement in illegal fishing activities and we decided to analyze if other companies exhibit the same patterns.</p>
-<section id="defining-transshipment" class="level4">
-<h4 class="anchored" data-anchor-id="defining-transshipment">1. Defining Transshipment</h4>
+<section id="defining-transshipment" class="level3">
+<h3 class="anchored" data-anchor-id="defining-transshipment">1. Defining Transshipment</h3>
 <ul>
 <li><strong>Transshipment</strong> refers to the transfer of cargo from one vessel to another while at sea. For our analysis, we define a transshipment event as occurring when multiple vessels from the same company are present at the same location on the same date, excluding cities</li>
 </ul>
 </section>
-<section id="process" class="level4">
-<h4 class="anchored" data-anchor-id="process">2. Process</h4>
+<section id="process" class="level3">
+<h3 class="anchored" data-anchor-id="process">2. Process</h3>
 <ul>
 <li><p><strong>Identified transshipment</strong> points by grouping the data and filtering for locations with multiple vessels.</p></li>
 <li><p><strong>Counted transshipment</strong> instances by grouping the filtered data by company and date, ensuring that multiple events on the same day are counted as one.</p></li>
@@ -1735,8 +1743,8 @@ Note
 </div>
 </section>
 </section>
-<section id="task-4" class="level2">
-<h2 class="anchored" data-anchor-id="task-4">Task 4:</h2>
+<section id="task-4" class="level1">
+<h1>Task 4:</h1>
 <p>In this section, we recreate the data and transshipment_data by processing the dataframe (transponder_ping_df) to analyze transshipment activities of vessels, this time for a larger date range. We aim to split the data into two periods: before and after SouthSeafood Express Corp was caught, likely around May 16, 2035.</p>
 <p>The goal is to identify new companies involved in transshipment activities after the catch date by comparing the companies from both periods, highlighting potential new entrants to transshipment following the crackdown on SouthSeafood Express Corp.</p>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -1937,7 +1945,6 @@ Note
 </div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
