@@ -54,6 +54,9 @@ scatterPlotMatrix(whitewine,
 
 
 ```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code" 
 set.seed(123)
 kmeans4 <- kmeans(whitewine, 4, nstart=25)
 print(kmeans4)
